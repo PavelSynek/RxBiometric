@@ -25,6 +25,9 @@ import android.security.keystore.KeyProperties;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -32,10 +35,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.Enumeration;
-
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 abstract class CipherProvider {
 	static final String ANDROID_KEY_STORE = "AndroidKeyStore";
@@ -70,7 +69,7 @@ abstract class CipherProvider {
 		KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(keyName,
 				KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
 				.setBlockModes(blockModes)
-				.setUserAuthenticationRequired(true)
+				.setUserAuthenticationRequired(false)
 				.setEncryptionPaddings(encryptionPaddings);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
 			builder.setInvalidatedByBiometricEnrollment(invalidatedByBiometricEnrollment);
