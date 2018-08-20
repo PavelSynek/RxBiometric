@@ -23,17 +23,25 @@ public class FingerprintAuthenticationException extends Exception {
 
     private final String message;
 
+    private final int errorCode;
+
     /**
      * Creates exception that occurs during fingerprint authentication with message
      *
      * @param errString message of exception
+     * @param errorCode code of exception
      */
-    public FingerprintAuthenticationException(CharSequence errString) {
+    public FingerprintAuthenticationException(CharSequence errString, int errorCode) {
         message = errString.toString();
+        this.errorCode = errorCode;
     }
 
     @Override
     public String getMessage() {
         return message;
+    }
+
+    public int getErrorCode() {
+        return errorCode;
     }
 }
