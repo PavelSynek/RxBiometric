@@ -16,14 +16,8 @@
 
 package com.mtramin.rxfingerprint;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
 import com.mtramin.rxfingerprint.data.FingerprintEncryptionResult;
-import com.mtramin.rxfingerprint.data.FingerprintUnavailableException;
-import io.reactivex.Observable;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,13 +27,19 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.crypto.Cipher;
 
+import io.reactivex.Observable;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Cipher.class)
 public class RsaEncryptionObservableTest {
 
 	private static final String INPUT = "TEST";
 
-	@Mock FingerprintApiWrapper fingerprintApiWrapper;
 	@Mock RsaCipherProvider cipherProvider;
 	@Mock RxFingerprintLogger logger;
 	Cipher cipher;
@@ -51,21 +51,11 @@ public class RsaEncryptionObservableTest {
 		mockStatic(Cipher.class);
 		cipher = mock(Cipher.class);
 
-		observable = Observable.create(new RsaEncryptionObservable(fingerprintApiWrapper, cipherProvider, INPUT.toCharArray(), new TestEncodingProvider(), logger));
+		observable = Observable.create(new RsaEncryptionObservable(cipherProvider, INPUT.toCharArray(), new TestEncodingProvider(), logger));
 	}
 
 	@Test
-	public void blocksEncryptionWhenFingerprintUnavailable() throws Exception {
-		when(fingerprintApiWrapper.isUnavailable()).thenReturn(true);
-
-		observable.test()
-				.assertNoValues()
-				.assertError(FingerprintUnavailableException.class);
-	}
-
-	@Test
-	public void chiperCreationThrows() throws Exception {
-		when(fingerprintApiWrapper.isUnavailable()).thenReturn(false);
+	public void cipherCreationThrows() throws Exception {
 		when(cipherProvider.getCipherForEncryption()).thenThrow(SecurityException.class);
 
 		observable.test()
@@ -75,7 +65,6 @@ public class RsaEncryptionObservableTest {
 
 	@Test
 	public void encrypt() throws Exception {
-		when(fingerprintApiWrapper.isUnavailable()).thenReturn(false);
 		when(cipherProvider.getCipherForEncryption()).thenReturn(cipher);
 		when(cipher.doFinal(ConversionUtils.toBytes(INPUT.toCharArray()))).thenReturn(ConversionUtils.toBytes(INPUT.toCharArray()));
 

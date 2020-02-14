@@ -1,6 +1,6 @@
 package com.mtramin.rxfingerprint.data;
 
-import android.content.Context;
+import com.mtramin.rxfingerprint.RxFingerprint;
 
 /**
  * Exception thrown when fingerprint operations are invoked even though the current device doesn't
@@ -14,7 +14,7 @@ import android.content.Context;
  * permission
  * <p>
  * To avoid receiving this exception after calling RxFingerprint operations prefer calling
- * {@link com.mtramin.rxfingerprint.RxFingerprint#isAvailable(Context)} to verify fingerprint
+ * {@link RxFingerprint#isAvailable()} (Context)} to verify fingerprint
  * operations are available.
  */
 public class FingerprintUnavailableException extends Exception {

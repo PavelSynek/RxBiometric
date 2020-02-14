@@ -16,20 +16,24 @@
 
 package com.mtramin.rxfingerprint;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 class FingerprintDialogBundle {
 
-	@NonNull private final String dialogTitleText;
-	@Nullable private final String dialogSubtitleText;
-	@Nullable private final String dialogDescriptionText;
-	@NonNull private final String dialogNegativeButtonText;
+	@NonNull
+	private final String dialogTitleText;
+	@Nullable
+	private final String dialogSubtitleText;
+	@Nullable
+	private final String dialogDescriptionText;
+	@NonNull
+	private final String dialogNegativeButtonText;
 
 	FingerprintDialogBundle(@NonNull String dialogTitleText,
-								   @Nullable String dialogSubtitleText,
-								   @Nullable String dialogDescriptionText,
-								   @NonNull String dialogNegativeButtonText) {
+							@Nullable String dialogSubtitleText,
+							@Nullable String dialogDescriptionText,
+							@NonNull String dialogNegativeButtonText) {
 		this.dialogTitleText = dialogTitleText;
 		this.dialogSubtitleText = dialogSubtitleText;
 		this.dialogDescriptionText = dialogDescriptionText;

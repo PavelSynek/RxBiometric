@@ -2,8 +2,7 @@ package com.mtramin.rxfingerprint;
 
 import org.junit.Test;
 
-import java.util.Arrays;
-
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
 public class CryptoDataTest {
@@ -18,8 +17,8 @@ public class CryptoDataTest {
 	public void fromString() throws Exception {
 		CryptoData cryptoData = CryptoData.fromString(encodingProvider, INPUT);
 
-		assertTrue(Arrays.equals(TEST_MESSAGE.getBytes(), cryptoData.getMessage()));
-		assertTrue(Arrays.equals(TEST_IV.getBytes(), cryptoData.getIv()));
+		assertArrayEquals(TEST_MESSAGE.getBytes(), cryptoData.getMessage());
+		assertArrayEquals(TEST_IV.getBytes(), cryptoData.getIv());
 		assertTrue(cryptoData.toString().contains(CryptoData.SEPARATOR));
 	}
 
@@ -27,8 +26,8 @@ public class CryptoDataTest {
 	public void fromBytes() throws Exception {
 		CryptoData cryptoData = CryptoData.fromBytes(encodingProvider, TEST_MESSAGE.getBytes(), TEST_IV.getBytes());
 
-		assertTrue(Arrays.equals(TEST_MESSAGE.getBytes(), cryptoData.getMessage()));
-		assertTrue(Arrays.equals(TEST_IV.getBytes(), cryptoData.getIv()));
+		assertArrayEquals(TEST_MESSAGE.getBytes(), cryptoData.getMessage());
+		assertArrayEquals(TEST_IV.getBytes(), cryptoData.getIv());
 		assertTrue(cryptoData.toString().contains(CryptoData.SEPARATOR));
 	}
 

@@ -20,8 +20,9 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.security.keystore.KeyProperties;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
@@ -57,13 +58,13 @@ class AesCipherProvider extends CipherProvider {
 	}
 
 	@TargetApi(Build.VERSION_CODES.M)
-       private static SecretKey createKey(String keyName, boolean invalidatedByBiometricEnrollment) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
-               KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
-               keyGenerator.init(getKeyGenParameterSpecBuilder(keyName, KeyProperties.BLOCK_MODE_CBC, KeyProperties.ENCRYPTION_PADDING_PKCS7, invalidatedByBiometricEnrollment)
-                       .setKeySize(AES_KEY_SIZE)
-                       .build());
-               return keyGenerator.generateKey();
-       }
+	private static SecretKey createKey(String keyName, boolean invalidatedByBiometricEnrollment) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+		KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
+		keyGenerator.init(getKeyGenParameterSpecBuilder(keyName, KeyProperties.BLOCK_MODE_CBC, KeyProperties.ENCRYPTION_PADDING_PKCS7, invalidatedByBiometricEnrollment)
+				.setKeySize(AES_KEY_SIZE)
+				.build());
+		return keyGenerator.generateKey();
+	}
 
 	@Override
 	Cipher cipherForEncryption() throws NoSuchAlgorithmException, NoSuchPaddingException, CertificateException, UnrecoverableKeyException, KeyStoreException, NoSuchProviderException, InvalidAlgorithmParameterException, IOException, InvalidKeyException {
@@ -77,7 +78,7 @@ class AesCipherProvider extends CipherProvider {
 	 * @param iv initialization vector used during encryption
 	 * @return Initialized cipher for decryption operations in RxFingerprint
 	 */
-	Cipher getCipherForDecryption(byte[] iv) throws CertificateException, NoSuchAlgorithmException, IOException, InvalidKeyException, UnrecoverableKeyException, KeyStoreException, InvalidAlgorithmParameterException, NoSuchPaddingException {
+	Cipher getCipherForDecryption(byte[] iv) throws NoSuchAlgorithmException, InvalidKeyException, UnrecoverableKeyException, KeyStoreException, InvalidAlgorithmParameterException, NoSuchPaddingException {
 		Cipher cipher = createCipher();
 		SecretKey key = getKey(keyName);
 		cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));

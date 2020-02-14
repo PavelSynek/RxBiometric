@@ -20,8 +20,9 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.security.keystore.KeyProperties;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -40,13 +41,14 @@ import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 
 class RsaCipherProvider extends CipherProvider {
+
 	RsaCipherProvider(@NonNull Context context, @Nullable String keyName, boolean keyInvalidatedByBiometricEnrollment, RxFingerprintLogger logger) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
 		super(context, keyName, keyInvalidatedByBiometricEnrollment, logger);
 	}
 
 	@Override
 	@TargetApi(Build.VERSION_CODES.M)
-	Cipher cipherForEncryption() throws GeneralSecurityException, IOException {
+	Cipher cipherForEncryption() throws GeneralSecurityException {
 		KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, ANDROID_KEY_STORE);
 
 		keyGenerator.initialize(getKeyGenParameterSpecBuilder(keyName, KeyProperties.BLOCK_MODE_ECB, KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1, invalidatedByBiometricEnrollment)

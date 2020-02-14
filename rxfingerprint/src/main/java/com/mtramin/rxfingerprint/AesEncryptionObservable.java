@@ -17,9 +17,10 @@
 package com.mtramin.rxfingerprint;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
-import android.hardware.fingerprint.FingerprintDialog;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.Nullable;
+import androidx.biometric.BiometricPrompt;
+import androidx.fragment.app.FragmentActivity;
 
 import com.mtramin.rxfingerprint.data.FingerprintEncryptionResult;
 import com.mtramin.rxfingerprint.data.FingerprintResult;
@@ -35,31 +36,34 @@ import io.reactivex.ObservableEmitter;
  * can only be used with fingerprint authentication and uses it once authentication was successful
  * to encrypt the given data.
  */
-@SuppressLint("NewApi") // SDK check happens in {@link FingerprintObservable#subscribe}
-class FingerprintDialogAesEncryptionObservable extends FingerprintDialogObservable<FingerprintEncryptionResult> {
+@SuppressLint("NewApi")
+		// SDK check happens in {@link FingerprintObservable#subscribe}
+class AesEncryptionObservable extends FingerprintDialogObservable<FingerprintEncryptionResult> {
 
 	private final char[] toEncrypt;
 	private final EncodingProvider encodingProvider;
 	private final AesCipherProvider cipherProvider;
 
 	/**
-	 * Creates a new FingerprintDialogAesEncryptionObservable that will listen to fingerprint authentication
+	 * Creates a new AesEncryptionObservable that will listen to fingerprint authentication
 	 * to encrypt the given data.
-	 *  @param context   context to use
+	 *
+	 * @param fragmentActivity        activity to use
 	 * @param fingerprintDialogBundle
-	 * @param keyName   name of the key in the keystore
-	 * @param toEncrypt data to encrypt  @return Observable {@link FingerprintEncryptionResult}
+	 * @param keyName                 name of the key in the keystore
+	 * @param toEncrypt               data to encrypt  @return Observable {@link FingerprintEncryptionResult}
 	 */
-	static Observable<FingerprintEncryptionResult> create(Context context,
+	static Observable<FingerprintEncryptionResult> create(FragmentActivity fragmentActivity,
 														  FingerprintDialogBundle fingerprintDialogBundle,
 														  String keyName,
 														  char[] toEncrypt,
 														  boolean keyInvalidatedByBiometricEnrollment,
 														  RxFingerprintLogger logger) {
 		try {
-			return Observable.create(new FingerprintDialogAesEncryptionObservable(new FingerprintApiWrapper(context, logger),
+			return Observable.create(new AesEncryptionObservable(
+					fragmentActivity,
 					fingerprintDialogBundle,
-					new AesCipherProvider(context, keyName, keyInvalidatedByBiometricEnrollment, logger),
+					new AesCipherProvider(fragmentActivity, keyName, keyInvalidatedByBiometricEnrollment, logger),
 					toEncrypt,
 					new Base64Provider()));
 		} catch (Exception e) {
@@ -67,12 +71,12 @@ class FingerprintDialogAesEncryptionObservable extends FingerprintDialogObservab
 		}
 	}
 
-	private FingerprintDialogAesEncryptionObservable(FingerprintApiWrapper fingerprintApiWrapper,
-													 FingerprintDialogBundle fingerprintDialogBundle,
-													 AesCipherProvider cipherProvider,
-													 char[] toEncrypt,
-													 EncodingProvider encodingProvider) {
-		super(fingerprintApiWrapper, fingerprintDialogBundle);
+	private AesEncryptionObservable(FragmentActivity fragmentActivity,
+									FingerprintDialogBundle fingerprintDialogBundle,
+									AesCipherProvider cipherProvider,
+									char[] toEncrypt,
+									EncodingProvider encodingProvider) {
+		super(fragmentActivity, fingerprintDialogBundle);
 		this.cipherProvider = cipherProvider;
 
 		if (toEncrypt == null) {
@@ -84,10 +88,10 @@ class FingerprintDialogAesEncryptionObservable extends FingerprintDialogObservab
 
 	@Nullable
 	@Override
-	protected FingerprintDialog.CryptoObject initCryptoObject(ObservableEmitter<FingerprintEncryptionResult> emitter) {
+	protected BiometricPrompt.CryptoObject initCryptoObject(ObservableEmitter<FingerprintEncryptionResult> emitter) {
 		try {
 			Cipher cipher = cipherProvider.getCipherForEncryption();
-			return new FingerprintDialog.CryptoObject(cipher);
+			return new BiometricPrompt.CryptoObject(cipher);
 		} catch (Exception e) {
 			emitter.onError(e);
 			return null;
@@ -95,7 +99,7 @@ class FingerprintDialogAesEncryptionObservable extends FingerprintDialogObservab
 	}
 
 	@Override
-	protected void onAuthenticationSucceeded(ObservableEmitter<FingerprintEncryptionResult> emitter, FingerprintDialog.AuthenticationResult result) {
+	protected void onAuthenticationSucceeded(ObservableEmitter<FingerprintEncryptionResult> emitter, BiometricPrompt.AuthenticationResult result) {
 		try {
 			Cipher cipher = result.getCryptoObject().getCipher();
 			byte[] encryptedBytes = cipher.doFinal(ConversionUtils.toBytes(toEncrypt));
@@ -104,7 +108,7 @@ class FingerprintDialogAesEncryptionObservable extends FingerprintDialogObservab
 			String encryptedString = CryptoData.fromBytes(encodingProvider, encryptedBytes, ivBytes).toString();
 			CryptoData.verifyCryptoDataString(encryptedString);
 
-			emitter.onNext(new FingerprintEncryptionResult(FingerprintResult.AUTHENTICATED, null, encryptedString));
+			emitter.onNext(new FingerprintEncryptionResult(FingerprintResult.AUTHENTICATED, encryptedString));
 			emitter.onComplete();
 		} catch (Exception e) {
 			emitter.onError(cipherProvider.mapCipherFinalOperationException(e));
@@ -112,12 +116,7 @@ class FingerprintDialogAesEncryptionObservable extends FingerprintDialogObservab
 	}
 
 	@Override
-	protected void onAuthenticationHelp(ObservableEmitter<FingerprintEncryptionResult> emitter, int helpMessageId, String helpString) {
-		emitter.onNext(new FingerprintEncryptionResult(FingerprintResult.HELP, helpString, null));
-	}
-
-	@Override
 	protected void onAuthenticationFailed(ObservableEmitter<FingerprintEncryptionResult> emitter) {
-		emitter.onNext(new FingerprintEncryptionResult(FingerprintResult.FAILED, null, null));
+		emitter.onNext(new FingerprintEncryptionResult(FingerprintResult.FAILED, null));
 	}
 }

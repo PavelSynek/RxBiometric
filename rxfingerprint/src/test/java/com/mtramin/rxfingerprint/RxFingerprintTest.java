@@ -93,38 +93,6 @@ public class RxFingerprintTest {
     }
 
     @Test
-    public void fingerprintAvailable() throws Exception {
-        when(mockContext.getSystemService(Context.FINGERPRINT_SERVICE)).thenReturn(mockFingerprintManager);
-        when(mockFingerprintManager.hasEnrolledFingerprints()).thenReturn(true);
-
-        assertTrue("Fingerprint should be available", rxFingerprint.hasEnrolledFingerprints());
-    }
-
-    @Test
-    public void hardwareAvailable() throws Exception {
-        when(mockContext.getSystemService(Context.FINGERPRINT_SERVICE)).thenReturn(mockFingerprintManager);
-        when(mockFingerprintManager.isHardwareDetected()).thenReturn(true);
-
-        assertTrue("Hardware should be available", rxFingerprint.isHardwareDetected());
-    }
-
-    @Test
-    public void fingerprintUnavailable() throws Exception {
-        when(mockContext.getSystemService(Context.FINGERPRINT_SERVICE)).thenReturn(mockFingerprintManager);
-        when(mockFingerprintManager.hasEnrolledFingerprints()).thenReturn(false);
-
-        assertFalse("Fingerprint should not be unavailable", rxFingerprint.hasEnrolledFingerprints());
-    }
-
-    @Test
-    public void hardwareUnavailable() throws Exception {
-        when(mockContext.getSystemService(Context.FINGERPRINT_SERVICE)).thenReturn(mockFingerprintManager);
-        when(mockFingerprintManager.isHardwareDetected()).thenReturn(false);
-
-        assertFalse("Hardware should not be available", rxFingerprint.isHardwareDetected());
-    }
-
-    @Test
     public void apisUnavailable() throws Exception {
         when(mockContext.getSystemService(Context.FINGERPRINT_SERVICE)).thenThrow(new NoClassDefFoundError());
 

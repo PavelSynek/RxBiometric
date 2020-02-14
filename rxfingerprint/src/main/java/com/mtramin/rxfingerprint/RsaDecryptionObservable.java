@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Marvin Ramin
+ * Copyright 2018 Marvin Ramin.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * <http://www.apache.org/licenses/LICENSE-2.0>
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,10 +17,10 @@
 package com.mtramin.rxfingerprint;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
-import android.hardware.fingerprint.FingerprintManager.AuthenticationResult;
-import android.hardware.fingerprint.FingerprintManager.CryptoObject;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.Nullable;
+import androidx.biometric.BiometricPrompt;
+import androidx.fragment.app.FragmentActivity;
 
 import com.mtramin.rxfingerprint.data.FingerprintDecryptionResult;
 import com.mtramin.rxfingerprint.data.FingerprintEncryptionResult;
@@ -33,7 +33,7 @@ import io.reactivex.ObservableEmitter;
 
 @SuppressLint("NewApi")
 		// SDK check happens in {@link FingerprintManagerObservable#subscribe}
-class FingerprintManagerRsaDecryptionObservable extends FingerprintManagerObservable<FingerprintDecryptionResult> {
+class RsaDecryptionObservable extends FingerprintDialogObservable<FingerprintDecryptionResult> {
 
 	private final RsaCipherProvider cipherProvider;
 	private final String encryptedString;
@@ -44,20 +44,23 @@ class FingerprintManagerRsaDecryptionObservable extends FingerprintManagerObserv
 	 * Creates a new AesEncryptionObservable that will listen to fingerprint authentication
 	 * to encrypt the given data.
 	 *
-	 * @param context   context to use
-	 * @param keyName   keyName to use for the decryption
-	 * @param encrypted data to encrypt  @return Observable {@link FingerprintEncryptionResult}
+	 * @param fragmentActivity        activity to use
+	 * @param fingerprintDialogBundle
+	 * @param keyName                 keyName to use for the decryption
+	 * @param encrypted               data to encrypt  @return Observable {@link FingerprintEncryptionResult}
 	 * @return Observable result of the decryption
 	 */
-	static Observable<FingerprintDecryptionResult> create(Context context,
+	static Observable<FingerprintDecryptionResult> create(FragmentActivity fragmentActivity,
+														  FingerprintDialogBundle fingerprintDialogBundle,
 														  String keyName,
 														  String encrypted,
 														  boolean keyInvalidatedByBiometricEnrollment,
 														  RxFingerprintLogger logger) {
 		try {
-			return Observable.create(new FingerprintManagerRsaDecryptionObservable(
-					new FingerprintApiWrapper(context, logger),
-					new RsaCipherProvider(context, keyName, keyInvalidatedByBiometricEnrollment, logger),
+			return Observable.create(new RsaDecryptionObservable(
+					fragmentActivity,
+					fingerprintDialogBundle,
+					new RsaCipherProvider(fragmentActivity, keyName, keyInvalidatedByBiometricEnrollment, logger),
 					encrypted,
 					new Base64Provider(),
 					logger));
@@ -66,12 +69,13 @@ class FingerprintManagerRsaDecryptionObservable extends FingerprintManagerObserv
 		}
 	}
 
-	private FingerprintManagerRsaDecryptionObservable(FingerprintApiWrapper fingerprintApiWrapper,
-													  RsaCipherProvider cipherProvider,
-													  String encrypted,
-													  EncodingProvider encodingProvider,
-													  RxFingerprintLogger logger) {
-		super(fingerprintApiWrapper);
+	private RsaDecryptionObservable(FragmentActivity fragmentActivity,
+									FingerprintDialogBundle fingerprintDialogBundle,
+									RsaCipherProvider cipherProvider,
+									String encrypted,
+									EncodingProvider encodingProvider,
+									RxFingerprintLogger logger) {
+		super(fragmentActivity, fingerprintDialogBundle);
 		this.cipherProvider = cipherProvider;
 		encryptedString = encrypted;
 		this.encodingProvider = encodingProvider;
@@ -80,10 +84,10 @@ class FingerprintManagerRsaDecryptionObservable extends FingerprintManagerObserv
 
 	@Nullable
 	@Override
-	protected CryptoObject initCryptoObject(ObservableEmitter<FingerprintDecryptionResult> subscriber) {
+	protected BiometricPrompt.CryptoObject initCryptoObject(ObservableEmitter<FingerprintDecryptionResult> subscriber) {
 		try {
 			Cipher cipher = cipherProvider.getCipherForDecryption();
-			return new CryptoObject(cipher);
+			return new BiometricPrompt.CryptoObject(cipher);
 		} catch (Exception e) {
 			subscriber.onError(e);
 			return null;
@@ -91,12 +95,12 @@ class FingerprintManagerRsaDecryptionObservable extends FingerprintManagerObserv
 	}
 
 	@Override
-	protected void onAuthenticationSucceeded(ObservableEmitter<FingerprintDecryptionResult> emitter, AuthenticationResult result) {
+	protected void onAuthenticationSucceeded(ObservableEmitter<FingerprintDecryptionResult> emitter, BiometricPrompt.AuthenticationResult result) {
 		try {
 			Cipher cipher = result.getCryptoObject().getCipher();
 			byte[] bytes = cipher.doFinal(encodingProvider.decode(encryptedString));
 
-			emitter.onNext(new FingerprintDecryptionResult(FingerprintResult.AUTHENTICATED, null, ConversionUtils.toChars(bytes)));
+			emitter.onNext(new FingerprintDecryptionResult(FingerprintResult.AUTHENTICATED, ConversionUtils.toChars(bytes)));
 			emitter.onComplete();
 		} catch (Exception e) {
 			logger.error("Unable to decrypt given value. RxFingerprint is only able to decrypt values previously encrypted by RxFingerprint with the same encryption mode.", e);
@@ -106,12 +110,7 @@ class FingerprintManagerRsaDecryptionObservable extends FingerprintManagerObserv
 	}
 
 	@Override
-	protected void onAuthenticationHelp(ObservableEmitter<FingerprintDecryptionResult> emitter, int helpMessageId, String helpString) {
-		emitter.onNext(new FingerprintDecryptionResult(FingerprintResult.HELP, helpString, null));
-	}
-
-	@Override
 	protected void onAuthenticationFailed(ObservableEmitter<FingerprintDecryptionResult> emitter) {
-		emitter.onNext(new FingerprintDecryptionResult(FingerprintResult.FAILED, null, null));
+		emitter.onNext(new FingerprintDecryptionResult(FingerprintResult.FAILED, null));
 	}
 }

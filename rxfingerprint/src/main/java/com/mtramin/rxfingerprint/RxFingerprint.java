@@ -16,23 +16,27 @@
 
 package com.mtramin.rxfingerprint;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.biometric.BiometricManager;
+import androidx.fragment.app.FragmentActivity;
 
 import com.mtramin.rxfingerprint.data.FingerprintAuthenticationResult;
 import com.mtramin.rxfingerprint.data.FingerprintDecryptionResult;
 import com.mtramin.rxfingerprint.data.FingerprintEncryptionResult;
+import com.mtramin.rxfingerprint.data.FingerprintUnavailableException;
 
 import org.reactivestreams.Subscriber;
 
 import io.reactivex.Observable;
 
 import static android.provider.Settings.ACTION_FINGERPRINT_ENROLL;
+import static androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS;
 
 /**
  * Entry point for RxFingerprint. Contains all the base methods you need to interact with the
@@ -53,18 +57,18 @@ import static android.provider.Settings.ACTION_FINGERPRINT_ENROLL;
  */
 public class RxFingerprint {
 
-	private final Context context;
+	private final FragmentActivity activity;
 	private final boolean keyInvalidatedByBiometricEnrollment;
 	private final EncryptionMethod encryptionMethod;
 	private final RxFingerprintLogger logger;
 	private final FingerprintDialogBundle fingerprintDialogBundle;
 
-	private RxFingerprint(Context context,
+	private RxFingerprint(FragmentActivity activity,
 						  boolean keyInvalidatedByBiometricEnrollment,
 						  EncryptionMethod encryptionMethod,
 						  RxFingerprintLogger logger,
 						  FingerprintDialogBundle fingerprintDialogBundle) {
-		this.context = context;
+		this.activity = activity;
 		this.keyInvalidatedByBiometricEnrollment = keyInvalidatedByBiometricEnrollment;
 		this.encryptionMethod = encryptionMethod;
 		this.logger = logger;
@@ -75,24 +79,24 @@ public class RxFingerprint {
 	 * Builder for {@link RxFingerprint}
 	 */
 	public static class Builder {
-		private final Context context;
+		private final FragmentActivity activity;
 		private boolean keyInvalidatedByBiometricEnrollment = true;
 		private EncryptionMethod encryptionMethod = EncryptionMethod.RSA;
 		private RxFingerprintLogger logger = new DefaultLogger();
-		@NonNull private String dialogTitleText;
-		@Nullable private String dialogSubtitleText;
-		@Nullable private String dialogDescriptionText;
-		@NonNull private String dialogNegativeButtonText;
+		@NonNull
+		private String dialogTitleText;
+		@Nullable
+		private String dialogSubtitleText;
+		@Nullable
+		private String dialogDescriptionText;
+		@NonNull
+		private String dialogNegativeButtonText;
 
 		/**
 		 * Creates a new Builder for {@link RxFingerprint}
-		 *
-		 * @param context context to use for this instance of RxFingerprint. While an application
-		 *                {@link Context} will work, it might cause issues with configuration
-		 *                changes of the application. Prefer an {@link android.app.Activity}.
 		 */
-		public Builder(@NonNull Context context) {
-			this.context = context;
+		public Builder(@NonNull FragmentActivity activity) {
+			this.activity = activity;
 		}
 
 		public Builder dialogTitleText(String dialogTitleText) {
@@ -142,8 +146,8 @@ public class RxFingerprint {
 		 *
 		 * @param encryptionMethod the encryption method to be used for all encryption/decryption
 		 *                         operations of this RxFingerprint instance. Defaults to
-		 *                         @{link EncryptionMethod.RSA}.
 		 * @return the {@link Builder}
+		 * @{link EncryptionMethod.RSA}.
 		 */
 		@NonNull
 		public Builder encryptionMethod(@NonNull EncryptionMethod encryptionMethod) {
@@ -179,14 +183,14 @@ public class RxFingerprint {
 
 		public RxFingerprint build() {
 			if (dialogTitleText == null) {
-				throw new IllegalArgumentException("RxFingerprint requires a dialotTitleText.");
+				throw new IllegalArgumentException("RxFingerprint requires a dialogTitleText.");
 			}
 
 			if (dialogNegativeButtonText == null) {
 				throw new IllegalArgumentException("RxFingerprint requires a dialogNegativeButtonText.");
 			}
 
-			return new RxFingerprint(context,
+			return new RxFingerprint(activity,
 					keyInvalidatedByBiometricEnrollment,
 					encryptionMethod,
 					logger,
@@ -200,19 +204,19 @@ public class RxFingerprint {
 	}
 
 	/**
-     * Authenticate the user with his fingerprint. This will enable the fingerprint sensor on the
-     * device and wait for the user to touch the sensor with his finger.
-     * <p/>
-     * All possible recoverable errors will be provided in {@link Subscriber#onNext(Object)} and
-     * should be handled there. Unrecoverable errors will be provided with
-     * {@link Subscriber#onError(Throwable)} calls.
-     *
-     * @return Observable {@link FingerprintAuthenticationResult}. Will complete once the
-     * authentication was successful or has failed entirely.
-     */
-    public Observable<FingerprintAuthenticationResult> authenticate() {
-        return RxFingerprintCompat.authenticate(context, fingerprintDialogBundle, logger);
-    }
+	 * Authenticate the user with his fingerprint. This will enable the fingerprint sensor on the
+	 * device and wait for the user to touch the sensor with his finger.
+	 * <p/>
+	 * All possible recoverable errors will be provided in {@link Subscriber#onNext(Object)} and
+	 * should be handled there. Unrecoverable errors will be provided with
+	 * {@link Subscriber#onError(Throwable)} calls.
+	 *
+	 * @return Observable {@link FingerprintAuthenticationResult}. Will complete once the
+	 * authentication was successful or has failed entirely.
+	 */
+	public Observable<FingerprintAuthenticationResult> authenticate() {
+		return AuthenticationObservable.create(activity, fingerprintDialogBundle);
+	}
 
 	/**
 	 * Encrypt data and authenticate the user with his fingerprint. The encrypted data can only be
@@ -282,7 +286,7 @@ public class RxFingerprint {
 	 * authentication was successful. Save this data where you please, but don't change it if you
 	 * want to decrypt it again!
 	 *
-	 *  @param toEncrypt data to encrypt
+	 * @param toEncrypt data to encrypt
 	 * @return Observable {@link FingerprintEncryptionResult} that will contain the encrypted data.
 	 * Will complete once the authentication and encryption were successful or have failed entirely.
 	 */
@@ -309,9 +313,20 @@ public class RxFingerprint {
 	 * @return Observable {@link FingerprintEncryptionResult} that will contain the encrypted data.
 	 * Will complete once the operation was successful or failed entirely.
 	 */
-	public Observable<FingerprintEncryptionResult> encrypt(@Nullable String keyName,
-														   @NonNull char[] toEncrypt) {
-		return RxFingerprintCompat.encrypt(encryptionMethod, context, fingerprintDialogBundle, keyName, toEncrypt, keyInvalidatedByBiometricEnrollment, logger);
+	public Observable<FingerprintEncryptionResult> encrypt(@Nullable String keyName, @NonNull char[] toEncrypt) {
+		switch (encryptionMethod) {
+			case AES:
+				return AesEncryptionObservable.create(activity, fingerprintDialogBundle, keyName, toEncrypt, keyInvalidatedByBiometricEnrollment, logger);
+			case RSA:
+				// RSA encryption implementation does not depend on Fingerprint authentication!
+				if (isAvailable()) {
+					return RsaEncryptionObservable.create(activity, keyName, toEncrypt, keyInvalidatedByBiometricEnrollment, logger);
+				} else {
+					return Observable.error(new FingerprintUnavailableException("Fingerprint authentication is not available on this device! Ensure that the device has a Fingerprint sensor and enrolled Fingerprints by calling RxFingerprint#isAvailable(Context) first"));
+				}
+			default:
+				return Observable.error(new IllegalArgumentException("Unknown encryption method: " + encryptionMethod));
+		}
 	}
 
 	/**
@@ -353,90 +368,66 @@ public class RxFingerprint {
 	 * @param toDecrypt String of encrypted data previously encrypted with
 	 *                  {@link #encrypt(String, char[])}.
 	 * @return Observable  {@link FingerprintDecryptionResult} that will contain the decrypted data.
-	 *                  Will complete once the authentication and decryption were successful or
-	 *                  have failed entirely.
+	 * Will complete once the authentication and decryption were successful or
+	 * have failed entirely.
 	 */
-	public Observable<FingerprintDecryptionResult> decrypt(@Nullable String keyName,
-														   @NonNull String toDecrypt) {
-		return RxFingerprintCompat.decrypt(encryptionMethod, context, fingerprintDialogBundle, keyName, toDecrypt, keyInvalidatedByBiometricEnrollment, logger);
+	public Observable<FingerprintDecryptionResult> decrypt(@Nullable String keyName, @NonNull String toDecrypt) {
+		switch (encryptionMethod) {
+			case AES:
+				return AesDecryptionObservable.create(activity, fingerprintDialogBundle, keyName, toDecrypt, keyInvalidatedByBiometricEnrollment, logger);
+			case RSA:
+				return RsaDecryptionObservable.create(activity, fingerprintDialogBundle, keyName, toDecrypt, keyInvalidatedByBiometricEnrollment, logger);
+			default:
+				return Observable.error(new IllegalArgumentException("Unknown decryption method: " + encryptionMethod));
+		}
 	}
 
-    /**
-     * Provides information if fingerprint authentication is currently available.
-     * <p/>
-     * The device needs to have a fingerprint hardware and the user needs to have enrolled
-     * at least one fingerprint in the system.
-     *
-     * @return {@code true} if fingerprint authentication is isAvailable
-     */
-    public boolean isAvailable() {
-        return new FingerprintApiWrapper(context, logger).isAvailable();
-    }
-
-    /**
-     * Provides information if fingerprint authentication is unavailable.
-     * <p/>
-     * The device needs to have a fingerprint hardware and the user needs to have enrolled
-     * at least one fingerprint in the system.
-     *
-     * @return {@code true} if fingerprint authentication is unavailable
-     */
-    public boolean isUnavailable() {
-        return !isAvailable();
-    }
-
-    /**
-     * Provides information if the device contains fingerprint detection hardware.
-     * <p/>
-     * If you want to detect if fingerprint authentication is currently available, prefer
-     * {@link RxFingerprint#isAvailable()}.
-     *
-     * @return {@code true} if fingerprint hardware exists in this device.
-	 * @deprecated Scheduled to be removed in v3.1. Use {@link RxFingerprint#isAvailable()} instead.
-     */
-    @SuppressWarnings("MissingPermission")
-	@Deprecated
-    public boolean isHardwareDetected() {
-        return new FingerprintApiWrapper(context, logger).isHardwareDetected();
-    }
-
-    /**
-     * Provides information if the user has enrolled at least one fingerprint.
-     * <p/>
-     * If you want to detect if fingerprint authentication is currently available, prefer
-     * {@link RxFingerprint#isAvailable()}.
-     *
-     * @return {@code true} if at least one fingerprint was enrolled.
-	 * @deprecated Scheduled to be removed in v3.1. Use {@link RxFingerprint#isAvailable()} instead.
-     */
-    @SuppressWarnings("MissingPermission")
-	@Deprecated
-    public boolean hasEnrolledFingerprints() {
-        return new FingerprintApiWrapper(context, logger).hasEnrolledFingerprints();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.P)
-    public void launchFingerprintEnrollment() {
-		context.startActivity(new Intent(ACTION_FINGERPRINT_ENROLL));
+	/**
+	 * Provides information if fingerprint authentication is currently available.
+	 * <p/>
+	 * The device needs to have a fingerprint hardware and the user needs to have enrolled
+	 * at least one fingerprint in the system.
+	 *
+	 * @return {@code true} if fingerprint authentication is isAvailable
+	 */
+	public boolean isAvailable() {
+		return BiometricManager.from(activity).canAuthenticate() == BIOMETRIC_SUCCESS;
 	}
 
-    /**
-     * Checks if the provided {@link Throwable} is of type {@link KeyPermanentlyInvalidatedException}
-     * <p/>
-     * This would mean that the user has disabled the lock screen on his device or changed the
-     * fingerprints stored on the device for authentication.
-     * <p/>
-     * If the user does this all keys encrypted by {@link RxFingerprint} become permanently
-     * invalidated by the Android system. To continue using encryption you have to ask the user to
-     * encrypt the original data again. The old data is not accessible anymore.
-     *
-     * @param throwable Throwable received in {@link Subscriber#onError(Throwable)} from
-     *                  an {@link RxFingerprint} encryption method
-     * @return {@code true} if the requested key was permanently invalidated and cannot be used
-     * anymore
-     */
+	/**
+	 * Provides information if fingerprint authentication is unavailable.
+	 * <p/>
+	 * The device needs to have a fingerprint hardware and the user needs to have enrolled
+	 * at least one fingerprint in the system.
+	 *
+	 * @return {@code true} if fingerprint authentication is unavailable
+	 */
+	public boolean isUnavailable() {
+		return !isAvailable();
+	}
+
+	@RequiresApi(api = Build.VERSION_CODES.P)
+	public void launchFingerprintEnrollment() {
+		activity.startActivity(new Intent(ACTION_FINGERPRINT_ENROLL));
+	}
+
+	/**
+	 * Checks if the provided {@link Throwable} is of type {@link KeyPermanentlyInvalidatedException}
+	 * <p/>
+	 * This would mean that the user has disabled the lock screen on his device or changed the
+	 * fingerprints stored on the device for authentication.
+	 * <p/>
+	 * If the user does this all keys encrypted by {@link RxFingerprint} become permanently
+	 * invalidated by the Android system. To continue using encryption you have to ask the user to
+	 * encrypt the original data again. The old data is not accessible anymore.
+	 *
+	 * @param throwable Throwable received in {@link Subscriber#onError(Throwable)} from
+	 *                  an {@link RxFingerprint} encryption method
+	 * @return {@code true} if the requested key was permanently invalidated and cannot be used
+	 * anymore
+	 */
 	@RequiresApi(23)
-    public static boolean keyInvalidated(Throwable throwable) {
-        return throwable instanceof KeyPermanentlyInvalidatedException;
-    }
+	public static boolean keyInvalidated(Throwable throwable) {
+		return throwable instanceof KeyPermanentlyInvalidatedException;
+	}
 }

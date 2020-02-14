@@ -17,14 +17,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion versions.oreo
-//    compileSdkVersion versions.compileSdk // Use this to test with Android P
-    buildToolsVersion versions.buildTools
+    compileSdkVersion versions.compileSdk // Use this to test with Android P
 
     defaultConfig {
         minSdkVersion versions.minSdk
-        targetSdkVersion versions.oreo
-//        targetSdkVersion versions.targetSdk // Use this to test with Android P
+        targetSdkVersion versions.targetSdk // Use this to test with Android P
         versionCode versions.code
         versionName versions.name
 

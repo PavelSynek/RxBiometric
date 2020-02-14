@@ -26,13 +26,11 @@ public class FingerprintDecryptionResult extends FingerprintAuthenticationResult
 
     /**
      * Default constructor
-     *
-     * @param result    result of the fingerprint authentication
-     * @param message   message to be displayed to the user
+     *  @param result    result of the fingerprint authentication
      * @param decrypted decrypted data
      */
-    public FingerprintDecryptionResult(FingerprintResult result, String message, char[] decrypted) {
-        super(result, message);
+    public FingerprintDecryptionResult(FingerprintResult result, char[] decrypted) {
+        super(result);
         this.decrypted = decrypted;
     }
 

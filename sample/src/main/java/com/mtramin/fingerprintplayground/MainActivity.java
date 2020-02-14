@@ -18,13 +18,14 @@ package com.mtramin.fingerprintplayground;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.mtramin.rxfingerprint.EncryptionMethod;
 import com.mtramin.rxfingerprint.RxFingerprint;
@@ -106,9 +107,6 @@ public class MainActivity extends AppCompatActivity {
                         case FAILED:
                             setStatusText("Fingerprint not recognized, try again!");
                             break;
-                        case HELP:
-                            setStatusText(fingerprintAuthenticationResult.getMessage());
-                            break;
                         case AUTHENTICATED:
                             setStatusText("Successfully authenticated!");
                             break;
@@ -135,15 +133,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         fingerprintDisposable = rxFingerprint.encrypt(String.valueOf(key), toEncrypt)
-                .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(fingerprintEncryptionResult -> {
                     switch (fingerprintEncryptionResult.getResult()) {
                         case FAILED:
                             setStatusText("Fingerprint not recognized, try again!");
-                            break;
-                        case HELP:
-                            setStatusText(fingerprintEncryptionResult.getMessage());
                             break;
                         case AUTHENTICATED:
                             String encrypted = fingerprintEncryptionResult.getEncrypted();
@@ -179,9 +173,6 @@ public class MainActivity extends AppCompatActivity {
                     switch (fingerprintDecryptionResult.getResult()) {
                         case FAILED:
                             setStatusText("Fingerprint not recognized, try again!");
-                            break;
-                        case HELP:
-                            setStatusText(fingerprintDecryptionResult.getMessage());
                             break;
                         case AUTHENTICATED:
                             setStatusText("decrypted:\n" + fingerprintDecryptionResult.getDecrypted());
