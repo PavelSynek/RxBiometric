@@ -23,7 +23,7 @@ ext.versions = [
         oreo               : 27,
         compileSdk         : 29,
         targetSdk          : 29,
-        minSdk             : 15,
+        minSdk             : 19,
 
         // Gradle Versions
         androidGradlePlugin: '3.5.3',
