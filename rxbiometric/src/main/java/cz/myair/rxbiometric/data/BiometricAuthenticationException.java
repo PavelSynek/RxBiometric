@@ -14,4 +14,26 @@
  * limitations under the License.
  */
 
-include ':sample', ':rxbiometric'
+package cz.myair.rxbiometric.data;
+
+/**
+ * Exception that gets thrown during biometric authentication if it fails and cannot be recovered.
+ */
+public class BiometricAuthenticationException extends Exception {
+
+    private final String message;
+
+    /**
+     * Creates exception that occurs during biometric authentication with message
+     *
+     * @param errString message of exception
+     */
+    public BiometricAuthenticationException(CharSequence errString) {
+        message = errString.toString();
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+}

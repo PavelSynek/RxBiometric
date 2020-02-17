@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
+
+group 'com.mtramin'
+version versions.name
 
 android {
     compileSdkVersion versions.compileSdk
@@ -24,11 +27,6 @@ android {
         targetSdkVersion versions.targetSdk
         versionCode versions.code
         versionName versions.name
-
-        compileOptions {
-            sourceCompatibility JavaVersion.VERSION_1_8
-            targetCompatibility JavaVersion.VERSION_1_8
-        }
     }
 
     buildTypes {
@@ -37,12 +35,28 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    lintOptions {
+        textReport true
+    }
+
+    testOptions {
+        unitTests.all {
+            testLogging {
+                events 'passed', 'skipped', 'failed'
+                exceptionFormat 'full'
+            }
+        }
+    }
 }
 
-
 dependencies {
-    implementation project(':rxbiometric')
+    compileOnly libraries.supportAnnotations
+    implementation libraries.biometrics
+    api libraries.rxJava
 
-    implementation libraries.appCompat
-    implementation libraries.rxAndroid
+    testImplementation libraries.jUnit
+    testImplementation libraries.mockito
+    testImplementation libraries.powermockJUnit
+    testImplementation libraries.powermockMockito
 }

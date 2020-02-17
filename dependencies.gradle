@@ -17,7 +17,7 @@
 ext.versions = [
         // Version
         code               : 1,
-        name               : '3.0.0-RC-1',
+        name               : '1.0.0',
 
         // Android Versions
         oreo               : 27,
@@ -51,7 +51,7 @@ ext.gradlePlugins = [
 ]
 
 ext.libraries = [
-        // RxFingerprint dependencies
+        // RxBiometric dependencies
         supportAnnotations: "androidx.annotation:annotation:$versions.supportAnnotations",
         biometrics        : "androidx.biometric:biometric:$versions.biometrics",
         rxJava            : "io.reactivex.rxjava2:rxjava:$versions.rxJava",

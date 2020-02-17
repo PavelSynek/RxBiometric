@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Marvin Ramin
+ * Copyright 2017 Marvin Ramin.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * <http://www.apache.org/licenses/LICENSE-2.0>
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,4 +14,24 @@
  * limitations under the License.
  */
 
-include ':sample', ':rxbiometric'
+package cz.myair.rxbiometric;
+
+/**
+ * Defines a provider for encoding and decoding
+ */
+interface EncodingProvider {
+
+	/**
+	 * Encodes the given byte array to a String
+	 * @param toEncode bytes to encode
+	 * @return encoded string
+	 */
+	String encode(byte[] toEncode);
+
+	/**
+	 * Decodes the given string to a byte array.
+	 * @param toDecode string to decode
+	 * @return decoded bytes
+	 */
+	byte[] decode(String toDecode);
+}

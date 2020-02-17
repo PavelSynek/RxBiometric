@@ -14,4 +14,11 @@
  * limitations under the License.
  */
 
-include ':sample', ':rxbiometric'
+package cz.myair.rxbiometric.data;
+
+/**
+ * Possible results of a biometric authentication operation
+ */
+public enum BiometricResult {
+    FAILED, AUTHENTICATED
+}
