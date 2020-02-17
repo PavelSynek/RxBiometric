@@ -16,6 +16,7 @@
 
 package cz.myair.rxbiometric;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
@@ -315,7 +316,7 @@ public class RxBiometric {
 				return AesEncryptionObservable.create(activity, biometricDialogBundle, keyName, toEncrypt, keyInvalidatedByBiometricEnrollment, logger);
 			case RSA:
 				// RSA encryption implementation does not depend on biometric authentication!
-				if (isAvailable()) {
+				if (isAvailable(activity)) {
 					return RsaEncryptionObservable.create(activity, keyName, toEncrypt, keyInvalidatedByBiometricEnrollment, logger);
 				} else {
 					return Observable.error(new BiometricsUnavailableException("Biometric authentication is not available on this device! Ensure that the device has a biometric sensor and enrolled biometrics by calling RxBiometric#isAvailable(Context) first"));
@@ -386,8 +387,8 @@ public class RxBiometric {
 	 *
 	 * @return {@code true} if biometric authentication is isAvailable
 	 */
-	public boolean isAvailable() {
-		return BiometricManager.from(activity).canAuthenticate() == BIOMETRIC_SUCCESS;
+	public static boolean isAvailable(Context context) {
+		return BiometricManager.from(context).canAuthenticate() == BIOMETRIC_SUCCESS;
 	}
 
 	/**
@@ -398,8 +399,8 @@ public class RxBiometric {
 	 *
 	 * @return {@code true} if biometric authentication is unavailable
 	 */
-	public boolean isUnavailable() {
-		return !isAvailable();
+	public static boolean isUnavailable(Context context) {
+		return !isAvailable(context);
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.P)

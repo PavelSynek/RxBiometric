@@ -1,6 +1,5 @@
 package cz.myair.rxbiometric;
 
-import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.util.Log;
@@ -32,8 +31,6 @@ public class RxBiometricTest {
 	@Mock
 	FingerprintManager mockFingerprintManager;
 
-	private RxBiometric rxBiometric;
-
 	@Before
 	public void setUp() throws Exception {
 		initMocks(this);
@@ -41,12 +38,6 @@ public class RxBiometricTest {
 		TestHelper.setRelease("Marshmallow");
 		PowerMockito.mockStatic(FingerprintManager.class);
 		PowerMockito.mockStatic(Log.class);
-
-		rxBiometric = new RxBiometric.Builder(mockActivity)
-				.disableLogging()
-				.dialogTitleText("TITLE")
-				.dialogNegativeButtonText("CANCEL")
-				.build();
 	}
 
 	@Test
@@ -57,54 +48,47 @@ public class RxBiometricTest {
 
 	@Test
 	public void testAvailable() throws Exception {
-		when(mockActivity.getSystemService(Context.FINGERPRINT_SERVICE)).thenReturn(mockFingerprintManager);
+		when(mockActivity.getSystemService(FingerprintManager.class)).thenReturn(mockFingerprintManager);
 		when(mockFingerprintManager.isHardwareDetected()).thenReturn(true);
 		when(mockFingerprintManager.hasEnrolledFingerprints()).thenReturn(true);
 
-		assertTrue("RxBiometric should be available", rxBiometric.isAvailable());
-		assertFalse("RxBiometric should be available", rxBiometric.isUnavailable());
+		assertTrue("RxBiometric should be available", RxBiometric.isAvailable(mockActivity));
+		assertFalse("RxBiometric should be available", RxBiometric.isUnavailable(mockActivity));
 	}
 
 	@Test
 	public void testUnavailableWithNoHardware() throws Exception {
-		when(mockActivity.getSystemService(Context.FINGERPRINT_SERVICE)).thenReturn(mockFingerprintManager);
+		when(mockActivity.getSystemService(FingerprintManager.class)).thenReturn(mockFingerprintManager);
 		when(mockFingerprintManager.isHardwareDetected()).thenReturn(false);
 		when(mockFingerprintManager.hasEnrolledFingerprints()).thenReturn(true);
 
-		assertFalse("RxBiometric should be unavailable", rxBiometric.isAvailable());
-		assertTrue("RxBiometric should be unavailable", rxBiometric.isUnavailable());
+		assertFalse("RxBiometric should be unavailable", RxBiometric.isAvailable(mockActivity));
+		assertTrue("RxBiometric should be unavailable", RxBiometric.isUnavailable(mockActivity));
 	}
 
 	@Test
 	public void testUnavailableWithNoFingerprint() throws Exception {
-		when(mockActivity.getSystemService(Context.FINGERPRINT_SERVICE)).thenReturn(mockFingerprintManager);
+		when(mockActivity.getSystemService(FingerprintManager.class)).thenReturn(mockFingerprintManager);
 		when(mockFingerprintManager.isHardwareDetected()).thenReturn(true);
 		when(mockFingerprintManager.hasEnrolledFingerprints()).thenReturn(false);
 
-		assertFalse("RxBiometric should be unavailable", rxBiometric.isAvailable());
-		assertTrue("RxBiometric should be unavailable", rxBiometric.isUnavailable());
+		assertFalse("RxBiometric should be unavailable", RxBiometric.isAvailable(mockActivity));
+		assertTrue("RxBiometric should be unavailable", RxBiometric.isUnavailable(mockActivity));
 	}
 
 	@Test
 	public void testUnavailable() throws Exception {
-		when(mockActivity.getSystemService(Context.FINGERPRINT_SERVICE)).thenReturn(mockFingerprintManager);
+		when(mockActivity.getSystemService(FingerprintManager.class)).thenReturn(mockFingerprintManager);
 		when(mockFingerprintManager.isHardwareDetected()).thenReturn(false);
 		when(mockFingerprintManager.hasEnrolledFingerprints()).thenReturn(false);
 
-		assertFalse("RxBiometric should be unavailable", rxBiometric.isAvailable());
-		assertTrue("RxBiometric should be unavailable", rxBiometric.isUnavailable());
-	}
-
-	@Test
-	public void apisUnavailable() throws Exception {
-		when(mockActivity.getSystemService(Context.FINGERPRINT_SERVICE)).thenThrow(new NoClassDefFoundError());
-
-		assertFalse("RxBiometric should be unavailable", rxBiometric.isAvailable());
+		assertFalse("RxBiometric should be unavailable", RxBiometric.isAvailable(mockActivity));
+		assertTrue("RxBiometric should be unavailable", RxBiometric.isUnavailable(mockActivity));
 	}
 
 	@Test
 	public void sdkNotSupported() throws Exception {
 		TestHelper.setSdkLevel(21);
-		assertFalse("RxBiometric should be unavailable", rxBiometric.isAvailable());
+		assertFalse("RxBiometric should be unavailable", RxBiometric.isAvailable(mockActivity));
 	}
 }

@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setStatusText() {
-        if (!rxBiometric.isAvailable()) {
+        if (!RxBiometric.isAvailable(this)) {
             setStatusText("Biometrics not available");
             return;
         }
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     private void authenticate() {
         setStatusText();
 
-        if (rxBiometric.isUnavailable()) {
+        if (RxBiometric.isUnavailable(this)) {
             return;
         }
 
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
     private void encrypt() {
         setStatusText();
 
-        if (rxBiometric.isUnavailable()) {
+        if (RxBiometric.isUnavailable(this)) {
             setStatusText("rxBiometric unavailable");
             return;
         }
@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
     private void decrypt(String key, String encrypted) {
         setStatusText();
 
-        if (!rxBiometric.isAvailable()) {
+        if (!RxBiometric.isAvailable(this)) {
             return;
         }
 
