@@ -70,9 +70,9 @@ abstract class BiometricDialogObservable<T> implements ObservableOnSubscribe<T> 
 	private BiometricPrompt.AuthenticationCallback createAuthenticationCallback(final ObservableEmitter<T> emitter) {
 		return new BiometricPrompt.AuthenticationCallback() {
 			@Override
-			public void onAuthenticationError(int errMsgId, @NonNull CharSequence errString) {
+			public void onAuthenticationError(int errorCode, @NonNull CharSequence errorMessage) {
 				if (!emitter.isDisposed()) {
-					emitter.onError(new BiometricAuthenticationException(errString));
+					emitter.onError(new BiometricAuthenticationException(errorCode, errorMessage));
 				}
 			}
 

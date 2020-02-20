@@ -21,19 +21,26 @@ package cz.myair.rxbiometric.data;
  */
 public class BiometricAuthenticationException extends Exception {
 
-    private final String message;
+	private final int errorCode;
+	private final String errorMessage;
 
-    /**
-     * Creates exception that occurs during biometric authentication with message
-     *
-     * @param errString message of exception
-     */
-    public BiometricAuthenticationException(CharSequence errString) {
-        message = errString.toString();
-    }
+	/**
+	 * Creates exception that occurs during biometric authentication with message
+	 *
+	 * @param errorCode    error code of exception
+	 * @param errorMessage message of exception
+	 */
+	public BiometricAuthenticationException(int errorCode, CharSequence errorMessage) {
+		this.errorCode = errorCode;
+		this.errorMessage = errorMessage.toString();
+	}
 
-    @Override
-    public String getMessage() {
-        return message;
-    }
+	public int getErrorCode() {
+		return errorCode;
+	}
+
+	@Override
+	public String getMessage() {
+		return errorMessage;
+	}
 }
