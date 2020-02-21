@@ -39,175 +39,176 @@ import io.reactivex.schedulers.Schedulers;
  */
 public class MainActivity extends AppCompatActivity {
 
-    private TextView statusText;
-    private EditText input;
-    private ViewGroup layout;
-    private int key;
+	private TextView statusText;
+	private EditText input;
+	private ViewGroup layout;
+	private int key;
 
-    private Disposable biometric = Disposables.empty();
+	private Disposable biometric = Disposables.empty();
 
-    private RxBiometric rxBiometric;
+	private RxBiometric rxBiometric;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
 
-        rxBiometric = new RxBiometric.Builder(this)
-                .encryptionMethod(EncryptionMethod.RSA)
-                .keyInvalidatedByBiometricEnrollment(true)
-                .dialogTitleText("RxBiometric")
-                .dialogSubtitleText("Use biometric sensor")
-                .dialogDescriptionText("Description")
-                .dialogNegativeButtonText("Cancel")
-                .build();
+		rxBiometric = new RxBiometric.Builder(this)
+				.encryptionMethod(EncryptionMethod.RSA)
+				.keyInvalidatedByBiometricEnrollment(true)
+				.confirmationRequired(true)
+				.dialogTitleText(R.string.titleText)
+				.dialogSubtitleText(R.string.subtitleText)
+				.dialogDescriptionText(R.string.descriptionText)
+				.dialogNegativeButtonText(R.string.negativeButtonText)
+				.build();
 
-        this.statusText = findViewById(R.id.status);
+		this.statusText = findViewById(R.id.status);
 
-        findViewById(R.id.authenticate).setOnClickListener(v -> authenticate());
-        findViewById(R.id.encrypt).setOnClickListener(v -> encrypt());
+		findViewById(R.id.authenticate).setOnClickListener(v -> authenticate());
+		findViewById(R.id.encrypt).setOnClickListener(v -> encrypt());
 
-        input = findViewById(R.id.input);
-        layout = findViewById(R.id.layout);
-    }
+		input = findViewById(R.id.input);
+		layout = findViewById(R.id.layout);
+	}
 
-    @Override
-    protected void onStop() {
-        super.onStop();
+	@Override
+	protected void onStop() {
+		super.onStop();
 
-        biometric.dispose();
-    }
+		biometric.dispose();
+	}
 
-    private void setStatusText(String text) {
-        statusText.setText(text);
-    }
+	private void setStatusText(String text) {
+		statusText.setText(text);
+	}
 
-    private void setStatusText() {
-        if (!RxBiometric.isAvailable(this)) {
-            setStatusText("Biometrics not available");
-            return;
-        }
+	private void setStatusText() {
+		if (!RxBiometric.isAvailable(this)) {
+			setStatusText("Biometrics not available");
+			return;
+		}
 
-        setStatusText("Touch the sensor!");
-    }
+		setStatusText("Touch the sensor!");
+	}
 
-    private void authenticate() {
-        setStatusText();
+	private void authenticate() {
+		setStatusText();
 
-        if (RxBiometric.isUnavailable(this)) {
-            return;
-        }
+		if (RxBiometric.isUnavailable(this)) {
+			return;
+		}
 
-        biometric = rxBiometric.authenticate()
-                .subscribeOn(Schedulers.computation())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(biometricAuthenticationResult -> {
-                    switch (biometricAuthenticationResult.getResult()) {
-                        case FAILED:
-                            setStatusText("Biometrics not recognized, try again!");
-                            break;
-                        case AUTHENTICATED:
-                            setStatusText("Successfully authenticated!");
-                            break;
-                    }
-                }, throwable -> {
-                    Log.e("ERROR", "authenticate", throwable);
-                    setStatusText(throwable.getMessage());
-                });
-    }
+		biometric = rxBiometric.authenticate()
+				.subscribeOn(Schedulers.computation())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(biometricAuthenticationResult -> {
+					switch (biometricAuthenticationResult.getResult()) {
+						case FAILED:
+							setStatusText("Biometrics not recognized, try again!");
+							break;
+						case AUTHENTICATED:
+							setStatusText("Successfully authenticated!");
+							break;
+					}
+				}, throwable -> {
+					Log.e("ERROR", "authenticate", throwable);
+					setStatusText(throwable.getMessage());
+				});
+	}
 
-    @SuppressLint("NewApi")
-    private void encrypt() {
-        setStatusText();
+	@SuppressLint("NewApi")
+	private void encrypt() {
+		setStatusText();
 
-        if (RxBiometric.isUnavailable(this)) {
-            setStatusText("rxBiometric unavailable");
-            return;
-        }
+		if (RxBiometric.isUnavailable(this)) {
+			setStatusText("rxBiometric unavailable");
+			return;
+		}
 
-        String toEncrypt = input.getText().toString();
-        if (TextUtils.isEmpty(toEncrypt)) {
-            setStatusText("Please enter a text to encrypt first");
-            return;
-        }
+		String toEncrypt = input.getText().toString();
+		if (TextUtils.isEmpty(toEncrypt)) {
+			setStatusText("Please enter a text to encrypt first");
+			return;
+		}
 
-        biometric = rxBiometric.encrypt(String.valueOf(key), toEncrypt)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(biometricEncryptionResult -> {
-                    switch (biometricEncryptionResult.getResult()) {
-                        case FAILED:
-                            setStatusText("Biometrics not recognized, try again!");
-                            break;
-                        case AUTHENTICATED:
-                            String encrypted = biometricEncryptionResult.getEncrypted();
-                            setStatusText("encryption successful");
-                            createDecryptionButton(encrypted);
-                            key++;
-                            break;
-                    }
-                }, throwable -> {
-                    //noinspection StatementWithEmptyBody
-                    if (RxBiometric.keyInvalidated(throwable)) {
-                        // The keys you wanted to use are invalidated because the user has turned off his
-                        // secure lock screen or changed the biometric credentials stored on the device
-                        // You have to re-encrypt the data to access it
-                    }
-                    Log.e("ERROR", "encrypt", throwable);
-                    setStatusText(throwable.getMessage());
-                });
-    }
+		biometric = rxBiometric.encrypt(String.valueOf(key), toEncrypt)
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(biometricEncryptionResult -> {
+					switch (biometricEncryptionResult.getResult()) {
+						case FAILED:
+							setStatusText("Biometrics not recognized, try again!");
+							break;
+						case AUTHENTICATED:
+							String encrypted = biometricEncryptionResult.getEncrypted();
+							setStatusText("encryption successful");
+							createDecryptionButton(encrypted);
+							key++;
+							break;
+					}
+				}, throwable -> {
+					//noinspection StatementWithEmptyBody
+					if (RxBiometric.keyInvalidated(throwable)) {
+						// The keys you wanted to use are invalidated because the user has turned off his
+						// secure lock screen or changed the biometric credentials stored on the device
+						// You have to re-encrypt the data to access it
+					}
+					Log.e("ERROR", "encrypt", throwable);
+					setStatusText(throwable.getMessage());
+				});
+	}
 
-    @SuppressLint("NewApi")
-    private void decrypt(String key, String encrypted) {
-        setStatusText();
+	@SuppressLint("NewApi")
+	private void decrypt(String key, String encrypted) {
+		setStatusText();
 
-        if (!RxBiometric.isAvailable(this)) {
-            return;
-        }
+		if (!RxBiometric.isAvailable(this)) {
+			return;
+		}
 
-        biometric = rxBiometric.decrypt(key, encrypted)
-                .subscribeOn(Schedulers.computation())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(biometricDecryptionResult -> {
-                    switch (biometricDecryptionResult.getResult()) {
-                        case FAILED:
-                            setStatusText("Biometrics not recognized, try again!");
-                            break;
-                        case AUTHENTICATED:
-                            setStatusText("decrypted:\n" + biometricDecryptionResult.getDecrypted());
-                            break;
-                    }
-                }, throwable -> {
-                    //noinspection StatementWithEmptyBody
-                    if (RxBiometric.keyInvalidated(throwable)) {
-                        // The keys you wanted to use are invalidated because the user has turned off his
-                        // secure lock screen or changed the biometric credentials stored on the device
-                        // You have to re-encrypt the data to access it
-                    }
-                    Log.e("ERROR", "decrypt", throwable);
-                    setStatusText(throwable.getMessage());
-                });
-    }
+		biometric = rxBiometric.decrypt(key, encrypted)
+				.subscribeOn(Schedulers.computation())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(biometricDecryptionResult -> {
+					switch (biometricDecryptionResult.getResult()) {
+						case FAILED:
+							setStatusText("Biometrics not recognized, try again!");
+							break;
+						case AUTHENTICATED:
+							setStatusText("decrypted:\n" + biometricDecryptionResult.getDecrypted());
+							break;
+					}
+				}, throwable -> {
+					//noinspection StatementWithEmptyBody
+					if (RxBiometric.keyInvalidated(throwable)) {
+						// The keys you wanted to use are invalidated because the user has turned off his
+						// secure lock screen or changed the biometric credentials stored on the device
+						// You have to re-encrypt the data to access it
+					}
+					Log.e("ERROR", "decrypt", throwable);
+					setStatusText(throwable.getMessage());
+				});
+	}
 
-    private void createDecryptionButton(final String encrypted) {
-        Button button = new Button(this);
-        button.setText(String.format("decrypt %d", key));
-        button.setTag(new EncryptedData(key, encrypted));
-        button.setOnClickListener(v -> {
-            EncryptedData encryptedData = (EncryptedData) v.getTag();
-            decrypt(encryptedData.key, encryptedData.encrypted);
-        });
-        layout.addView(button);
-    }
+	private void createDecryptionButton(final String encrypted) {
+		Button button = new Button(this);
+		button.setText(String.format("decrypt %d", key));
+		button.setTag(new EncryptedData(key, encrypted));
+		button.setOnClickListener(v -> {
+			EncryptedData encryptedData = (EncryptedData) v.getTag();
+			decrypt(encryptedData.key, encryptedData.encrypted);
+		});
+		layout.addView(button);
+	}
 
-    private static class EncryptedData {
-        final String key;
-        final String encrypted;
+	private static class EncryptedData {
+		final String key;
+		final String encrypted;
 
-        EncryptedData(int key, String encrypted) {
-            this.key = String.valueOf(key);
-            this.encrypted = encrypted;
-        }
-    }
+		EncryptedData(int key, String encrypted) {
+			this.key = String.valueOf(key);
+			this.encrypted = encrypted;
+		}
+	}
 
 }

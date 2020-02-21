@@ -50,13 +50,17 @@ abstract class BiometricDialogObservable<T> implements ObservableOnSubscribe<T> 
 			}
 		};
 
+		String subtitleText = biometricDialogBundle.getSubtitleText() != null ? fragmentActivity.getString(biometricDialogBundle.getSubtitleText()) : null;
+		String descriptionText = biometricDialogBundle.getDescriptionText() != null ? fragmentActivity.getString(biometricDialogBundle.getDescriptionText()) : null;
+
 		BiometricPrompt.AuthenticationCallback authenticationCallback = createAuthenticationCallback(emitter);
 		BiometricPrompt.CryptoObject cryptoObject = initCryptoObject(emitter);
 		BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
-				.setTitle(biometricDialogBundle.getDialogTitleText())
-				.setSubtitle(biometricDialogBundle.getDialogSubtitleText())
-				.setDescription(biometricDialogBundle.getDialogDescriptionText())
-				.setNegativeButtonText(biometricDialogBundle.getDialogNegativeButtonText())
+				.setTitle(fragmentActivity.getString(biometricDialogBundle.getTitleText()))
+				.setSubtitle(subtitleText)
+				.setDescription(descriptionText)
+				.setNegativeButtonText(fragmentActivity.getString(biometricDialogBundle.getNegativeButtonText()))
+				.setConfirmationRequired(biometricDialogBundle.isConfirmationRequired())
 				.build();
 
 		BiometricPrompt biometricPrompt = new BiometricPrompt(fragmentActivity, executor, authenticationCallback);

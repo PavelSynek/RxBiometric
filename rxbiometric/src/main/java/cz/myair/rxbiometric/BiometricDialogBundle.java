@@ -16,47 +16,49 @@
 
 package cz.myair.rxbiometric;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 class BiometricDialogBundle {
 
-	@NonNull
-	private final String dialogTitleText;
+	private final int titleText;
 	@Nullable
-	private final String dialogSubtitleText;
+	private final Integer subtitleText;
 	@Nullable
-	private final String dialogDescriptionText;
-	@NonNull
-	private final String dialogNegativeButtonText;
+	private final Integer descriptionText;
+	private final int negativeButtonText;
+	private final boolean confirmationRequired;
 
-	BiometricDialogBundle(@NonNull String dialogTitleText,
-						  @Nullable String dialogSubtitleText,
-						  @Nullable String dialogDescriptionText,
-						  @NonNull String dialogNegativeButtonText) {
-		this.dialogTitleText = dialogTitleText;
-		this.dialogSubtitleText = dialogSubtitleText;
-		this.dialogDescriptionText = dialogDescriptionText;
-		this.dialogNegativeButtonText = dialogNegativeButtonText;
+	BiometricDialogBundle(int titleText,
+						  @Nullable Integer subtitleText,
+						  @Nullable Integer descriptionText,
+						  int negativeButtonText,
+						  boolean confirmationRequired) {
+		this.titleText = titleText;
+		this.subtitleText = subtitleText;
+		this.descriptionText = descriptionText;
+		this.negativeButtonText = negativeButtonText;
+		this.confirmationRequired = confirmationRequired;
 	}
 
-	@NonNull
-	public String getDialogTitleText() {
-		return dialogTitleText;
-	}
-
-	@Nullable
-	public String getDialogSubtitleText() {
-		return dialogSubtitleText;
+	public int getTitleText() {
+		return titleText;
 	}
 
 	@Nullable
-	public String getDialogDescriptionText() {
-		return dialogDescriptionText;
+	public Integer getSubtitleText() {
+		return subtitleText;
 	}
 
-	@NonNull
-	public String getDialogNegativeButtonText() {
-		return dialogNegativeButtonText;
+	@Nullable
+	public Integer getDescriptionText() {
+		return descriptionText;
+	}
+
+	public int getNegativeButtonText() {
+		return negativeButtonText;
+	}
+
+	public boolean isConfirmationRequired() {
+		return confirmationRequired;
 	}
 }

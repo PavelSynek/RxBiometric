@@ -24,6 +24,7 @@ import android.security.keystore.KeyPermanentlyInvalidatedException;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.annotation.StringRes;
 import androidx.biometric.BiometricManager;
 import androidx.fragment.app.FragmentActivity;
 
@@ -83,14 +84,13 @@ public class RxBiometric {
 		private boolean keyInvalidatedByBiometricEnrollment = true;
 		private EncryptionMethod encryptionMethod = EncryptionMethod.RSA;
 		private RxBiometricLogger logger = new DefaultLogger();
-		@NonNull
-		private String dialogTitleText;
+		private int dialogTitleText;
 		@Nullable
-		private String dialogSubtitleText;
+		private Integer dialogSubtitleText;
 		@Nullable
-		private String dialogDescriptionText;
-		@NonNull
-		private String dialogNegativeButtonText;
+		private Integer dialogDescriptionText;
+		private int dialogNegativeButtonText;
+		private boolean confirmationRequired = true;
 
 		/**
 		 * Creates a new Builder for {@link RxBiometric}
@@ -99,23 +99,46 @@ public class RxBiometric {
 			this.activity = activity;
 		}
 
-		public Builder dialogTitleText(String dialogTitleText) {
+		public Builder dialogTitleText(@StringRes int dialogTitleText) {
 			this.dialogTitleText = dialogTitleText;
 			return this;
 		}
 
-		public Builder dialogSubtitleText(String dialogSubtitleText) {
+		public Builder dialogSubtitleText(@StringRes int dialogSubtitleText) {
 			this.dialogSubtitleText = dialogSubtitleText;
 			return this;
 		}
 
-		public Builder dialogDescriptionText(String dialogDescriptionText) {
+		public Builder dialogDescriptionText(@StringRes int dialogDescriptionText) {
 			this.dialogDescriptionText = dialogDescriptionText;
 			return this;
 		}
 
-		public Builder dialogNegativeButtonText(String dialogNegativeButtonText) {
+		public Builder dialogNegativeButtonText(@StringRes int dialogNegativeButtonText) {
 			this.dialogNegativeButtonText = dialogNegativeButtonText;
+			return this;
+		}
+
+		/**
+		 * Optional: A hint to the system to require user confirmation after a biometric has
+		 * been authenticated. For example, implicit modalities like Face and
+		 * Iris authentication are passive, meaning they don't require an explicit user action
+		 * to complete. When set to 'false', the user action (e.g. pressing a button)
+		 * will not be required. BiometricPrompt will require confirmation by default.
+		 * <p>
+		 * A typical use case for not requiring confirmation would be for low-risk transactions,
+		 * such as re-authenticating a recently authenticated application. A typical use case
+		 * for requiring confirmation would be for authorizing a purchase.
+		 * <p>
+		 * Note that this is a hint to the system. The system may choose to ignore the flag. For
+		 * example, if the user disables implicit authentication in Settings, or if it does not
+		 * apply to a modality (e.g. Fingerprint). When ignored, the system will default to
+		 * requiring confirmation.
+		 * <p>
+		 * This method only applies to Q and above.
+		 */
+		public Builder confirmationRequired(boolean confirmationRequired) {
+			this.confirmationRequired = confirmationRequired;
 			return this;
 		}
 
@@ -147,7 +170,7 @@ public class RxBiometric {
 		 * @param encryptionMethod the encryption method to be used for all encryption/decryption
 		 *                         operations of this RxBiometric instance. Defaults to
 		 * @return the {@link Builder}
-		 * @{link EncryptionMethod.RSA}.
+		 * {@link EncryptionMethod#RSA}.
 		 */
 		@NonNull
 		public Builder encryptionMethod(@NonNull EncryptionMethod encryptionMethod) {
@@ -158,10 +181,8 @@ public class RxBiometric {
 		/**
 		 * Sets the logging implementation to be used.
 		 *
-		 * @param logger Logger implementation to be used. Use {@link Builder#disableLogging} to
-		 *               disable all logging from RxBiometric.
-		 *               Defaults to {@link DefaultLogger} which
-		 *               logs to logcat via {@link android.util.Log}.
+		 * @param logger Logger implementation to be used.
+		 *               Defaults to {@link EmptyLogger} which does nothing
 		 * @return the {@link Builder}
 		 */
 		@NonNull
@@ -170,23 +191,12 @@ public class RxBiometric {
 			return this;
 		}
 
-		/**
-		 * Disables all logging for RxBiometric
-		 *
-		 * @return the {@link Builder}
-		 */
-		@NonNull
-		public Builder disableLogging() {
-			this.logger = new EmptyLogger();
-			return this;
-		}
-
 		public RxBiometric build() {
-			if (dialogTitleText == null) {
+			if (dialogTitleText == 0) {
 				throw new IllegalArgumentException("RxBiometric requires a dialogTitleText.");
 			}
 
-			if (dialogNegativeButtonText == null) {
+			if (dialogNegativeButtonText == 0) {
 				throw new IllegalArgumentException("RxBiometric requires a dialogNegativeButtonText.");
 			}
 
@@ -198,7 +208,8 @@ public class RxBiometric {
 							dialogTitleText,
 							dialogSubtitleText,
 							dialogDescriptionText,
-							dialogNegativeButtonText)
+							dialogNegativeButtonText,
+							confirmationRequired)
 			);
 		}
 	}

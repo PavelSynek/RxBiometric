@@ -16,4 +16,8 @@
 
 <resources>
     <string name="app_name">RxBiometric Sample</string>
+    <string name="titleText">RxBiometric</string>
+    <string name="subtitleText">Use biometric sensor</string>
+    <string name="descriptionText">Description</string>
+    <string name="negativeButtonText">Cancel</string>
 </resources>
