@@ -26,8 +26,7 @@ ext.versions = [
         minSdk             : 19,
 
         // Gradle Versions
-        androidGradlePlugin: '3.5.3',
-        mavenGradlePlugin  : '1.4.1',
+        androidGradlePlugin: '3.6.1',
         bintrayGradlePlugin: '1.7.1',
 
         // Dependency Versions
@@ -46,7 +45,6 @@ ext.versions = [
 
 ext.gradlePlugins = [
         android: "com.android.tools.build:gradle:$versions.androidGradlePlugin",
-        maven  : "com.github.dcendents:android-maven-gradle-plugin:$versions.mavenGradlePlugin",
         bintray: "com.jfrog.bintray.gradle:gradle-bintray-plugin:$versions.bintrayGradlePlugin"
 ]
 
