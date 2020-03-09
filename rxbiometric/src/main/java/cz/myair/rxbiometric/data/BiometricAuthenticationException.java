@@ -39,8 +39,12 @@ public class BiometricAuthenticationException extends Exception {
 		return errorCode;
 	}
 
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
 	@Override
 	public String getMessage() {
-		return errorMessage;
+		return errorCode + " - " + errorMessage;
 	}
 }
