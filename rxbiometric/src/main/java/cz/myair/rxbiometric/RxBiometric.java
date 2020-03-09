@@ -17,8 +17,6 @@
 package cz.myair.rxbiometric;
 
 import android.content.Context;
-import android.content.Intent;
-import android.os.Build;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 
 import androidx.annotation.NonNull;
@@ -26,17 +24,18 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.StringRes;
 import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
 import androidx.fragment.app.FragmentActivity;
 
 import org.reactivestreams.Subscriber;
 
 import cz.myair.rxbiometric.data.BiometricAuthenticationResult;
+import cz.myair.rxbiometric.data.BiometricCryptoObjectDecryptionResult;
 import cz.myair.rxbiometric.data.BiometricDecryptionResult;
 import cz.myair.rxbiometric.data.BiometricEncryptionResult;
 import cz.myair.rxbiometric.data.BiometricsUnavailableException;
 import io.reactivex.Observable;
 
-import static android.provider.Settings.ACTION_FINGERPRINT_ENROLL;
 import static androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS;
 
 /**
@@ -169,8 +168,8 @@ public class RxBiometric {
 		 *
 		 * @param encryptionMethod the encryption method to be used for all encryption/decryption
 		 *                         operations of this RxBiometric instance. Defaults to
+		 *                         {@link EncryptionMethod#RSA}.
 		 * @return the {@link Builder}
-		 * {@link EncryptionMethod#RSA}.
 		 */
 		@NonNull
 		public Builder encryptionMethod(@NonNull EncryptionMethod encryptionMethod) {
@@ -227,6 +226,21 @@ public class RxBiometric {
 	 */
 	public Observable<BiometricAuthenticationResult> authenticate() {
 		return AuthenticationObservable.create(activity, biometricDialogBundle);
+	}
+
+	/**
+	 * Decrypt specified CryptoObject.
+	 * The resulting {@link BiometricCryptoObjectDecryptionResult} will contain the unlocked
+	 * {@link BiometricPrompt.CryptoObject} if the authentication and decryption was successful.
+	 * <p>
+	 * This operation will require the user to authenticate with their biometric.
+	 *
+	 * @return Observable  {@link BiometricCryptoObjectDecryptionResult} that will contain the
+	 * unlocked {@link BiometricPrompt.CryptoObject}
+	 * Will complete once the authentication and decryption were successful or have failed entirely.
+	 */
+	public Observable<BiometricCryptoObjectDecryptionResult> authenticate(@NonNull BiometricPrompt.CryptoObject cryptoObject) {
+		return CryptoObjectDecryptionObservable.create(activity, biometricDialogBundle, cryptoObject);
 	}
 
 	/**
@@ -322,6 +336,9 @@ public class RxBiometric {
 	 * Will complete once the operation was successful or failed entirely.
 	 */
 	public Observable<BiometricEncryptionResult> encrypt(@Nullable String keyName, @NonNull char[] toEncrypt) {
+		if (encryptionMethod == null) {
+			return Observable.error(new IllegalArgumentException("Unable to encrypt without encryptionMethod specified"));
+		}
 		switch (encryptionMethod) {
 			case AES:
 				return AesEncryptionObservable.create(activity, biometricDialogBundle, keyName, toEncrypt, keyInvalidatedByBiometricEnrollment, logger);
@@ -350,9 +367,7 @@ public class RxBiometric {
 	 * @param encrypted String of encrypted data previously encrypted with
 	 *                  {@link #encrypt(String, char[])}.
 	 * @return Observable {@link BiometricDecryptionResult} that will contain the decrypted data.
-	 * Will complete once the authentication and decryption were
-	 * successful or have failed entirely.
-	 * decrypted string if decryption was successful.
+	 * Will complete once the authentication and decryption were successful or have failed entirely.
 	 */
 	public Observable<BiometricDecryptionResult> decrypt(@NonNull String encrypted) {
 		return decrypt(null, encrypted);
@@ -376,10 +391,12 @@ public class RxBiometric {
 	 * @param toDecrypt String of encrypted data previously encrypted with
 	 *                  {@link #encrypt(String, char[])}.
 	 * @return Observable  {@link BiometricDecryptionResult} that will contain the decrypted data.
-	 * Will complete once the authentication and decryption were successful or
-	 * have failed entirely.
+	 * Will complete once the authentication and decryption were successful or have failed entirely.
 	 */
 	public Observable<BiometricDecryptionResult> decrypt(@Nullable String keyName, @NonNull String toDecrypt) {
+		if (encryptionMethod == null) {
+			return Observable.error(new IllegalArgumentException("Unable to decrypt without encryptionMethod specified"));
+		}
 		switch (encryptionMethod) {
 			case AES:
 				return AesDecryptionObservable.create(activity, biometricDialogBundle, keyName, toDecrypt, keyInvalidatedByBiometricEnrollment, logger);
@@ -412,11 +429,6 @@ public class RxBiometric {
 	 */
 	public static boolean isUnavailable(Context context) {
 		return !isAvailable(context);
-	}
-
-	@RequiresApi(api = Build.VERSION_CODES.P)
-	public void launchBiometricEnrollment() {
-		activity.startActivity(new Intent(ACTION_FINGERPRINT_ENROLL));
 	}
 
 	/**

@@ -20,37 +20,34 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.crypto.Cipher;
+import javax.crypto.NullCipher;
 
 import cz.myair.rxbiometric.data.BiometricEncryptionResult;
 import io.reactivex.Observable;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Cipher.class)
+@RunWith(MockitoJUnitRunner.class)
 public class RsaEncryptionObservableTest {
 
 	private static final String INPUT = "TEST";
 
-	@Mock RsaCipherProvider cipherProvider;
+	@Mock
+	RsaCipherProvider cipherProvider;
+
 	@Mock
 	RxBiometricLogger logger;
-	Cipher cipher;
+
+	private Cipher cipher = new NullCipher();
 
 	private Observable<BiometricEncryptionResult> observable;
 
 	@Before
 	public void setUp() throws Exception {
-		mockStatic(Cipher.class);
-		cipher = mock(Cipher.class);
-
 		observable = Observable.create(new RsaEncryptionObservable(cipherProvider, INPUT.toCharArray(), new TestEncodingProvider(), logger));
 	}
 
@@ -66,7 +63,6 @@ public class RsaEncryptionObservableTest {
 	@Test
 	public void encrypt() throws Exception {
 		when(cipherProvider.getCipherForEncryption()).thenReturn(cipher);
-		when(cipher.doFinal(ConversionUtils.toBytes(INPUT.toCharArray()))).thenReturn(ConversionUtils.toBytes(INPUT.toCharArray()));
 
 		BiometricEncryptionResult biometricEncryptionResult = observable.test()
 				.assertValueCount(1)
