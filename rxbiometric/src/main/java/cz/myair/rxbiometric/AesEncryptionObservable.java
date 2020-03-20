@@ -20,7 +20,6 @@ import android.annotation.SuppressLint;
 
 import androidx.annotation.Nullable;
 import androidx.biometric.BiometricPrompt;
-import androidx.fragment.app.FragmentActivity;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -47,12 +46,12 @@ class AesEncryptionObservable extends BiometricDialogObservable<BiometricEncrypt
 	 * Creates a new AesEncryptionObservable that will listen to biometric authentication
 	 * to encrypt the given data.
 	 *
-	 * @param fragmentActivity      activity to use
+	 * @param activityOrFragment    activity or fragment wrapper
 	 * @param biometricDialogBundle
 	 * @param keyName               name of the key in the keystore
 	 * @param toEncrypt             data to encrypt  @return Observable {@link BiometricEncryptionResult}
 	 */
-	static Observable<BiometricEncryptionResult> create(FragmentActivity fragmentActivity,
+	static Observable<BiometricEncryptionResult> create(ActivityOrFragment activityOrFragment,
 														BiometricDialogBundle biometricDialogBundle,
 														String keyName,
 														char[] toEncrypt,
@@ -60,9 +59,9 @@ class AesEncryptionObservable extends BiometricDialogObservable<BiometricEncrypt
 														RxBiometricLogger logger) {
 		try {
 			return Observable.create(new AesEncryptionObservable(
-					fragmentActivity,
+					activityOrFragment,
 					biometricDialogBundle,
-					new AesCipherProvider(fragmentActivity, keyName, keyInvalidatedByBiometricEnrollment, logger),
+					new AesCipherProvider(activityOrFragment.getContext(), keyName, keyInvalidatedByBiometricEnrollment, logger),
 					toEncrypt,
 					new Base64Provider()));
 		} catch (Exception e) {
@@ -70,12 +69,12 @@ class AesEncryptionObservable extends BiometricDialogObservable<BiometricEncrypt
 		}
 	}
 
-	private AesEncryptionObservable(FragmentActivity fragmentActivity,
+	private AesEncryptionObservable(ActivityOrFragment activityOrFragment,
 									BiometricDialogBundle biometricDialogBundle,
 									AesCipherProvider cipherProvider,
 									char[] toEncrypt,
 									EncodingProvider encodingProvider) {
-		super(fragmentActivity, biometricDialogBundle);
+		super(activityOrFragment, biometricDialogBundle);
 		this.cipherProvider = cipherProvider;
 
 		if (toEncrypt == null) {

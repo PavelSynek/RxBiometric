@@ -25,6 +25,7 @@ import androidx.annotation.RequiresApi;
 import androidx.annotation.StringRes;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
 import org.reactivestreams.Subscriber;
@@ -57,18 +58,18 @@ import static androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS;
  */
 public class RxBiometric {
 
-	private final FragmentActivity activity;
+	private final ActivityOrFragment activityOrFragment;
 	private final boolean keyInvalidatedByBiometricEnrollment;
 	private final EncryptionMethod encryptionMethod;
 	private final RxBiometricLogger logger;
 	private final BiometricDialogBundle biometricDialogBundle;
 
-	private RxBiometric(FragmentActivity activity,
+	private RxBiometric(ActivityOrFragment activityOrFragment,
 						boolean keyInvalidatedByBiometricEnrollment,
 						EncryptionMethod encryptionMethod,
 						RxBiometricLogger logger,
 						BiometricDialogBundle biometricDialogBundle) {
-		this.activity = activity;
+		this.activityOrFragment = activityOrFragment;
 		this.keyInvalidatedByBiometricEnrollment = keyInvalidatedByBiometricEnrollment;
 		this.encryptionMethod = encryptionMethod;
 		this.logger = logger;
@@ -79,7 +80,7 @@ public class RxBiometric {
 	 * Builder for {@link RxBiometric}
 	 */
 	public static class Builder {
-		private final FragmentActivity activity;
+		private final ActivityOrFragment activityOrFragment;
 		private boolean keyInvalidatedByBiometricEnrollment = true;
 		private EncryptionMethod encryptionMethod = EncryptionMethod.RSA;
 		private RxBiometricLogger logger = new DefaultLogger();
@@ -92,10 +93,17 @@ public class RxBiometric {
 		private boolean confirmationRequired = true;
 
 		/**
-		 * Creates a new Builder for {@link RxBiometric}
+		 * Creates a new Builder for {@link RxBiometric} using {@link Fragment}
 		 */
-		public Builder(@NonNull FragmentActivity activity) {
-			this.activity = activity;
+		public Builder(@NonNull Fragment fragment) {
+			this.activityOrFragment = new ActivityOrFragment(fragment);
+		}
+
+		/**
+		 * Creates a new Builder for {@link RxBiometric} using {@link FragmentActivity}
+		 */
+		public Builder(@NonNull FragmentActivity fragmentActivity) {
+			this.activityOrFragment = new ActivityOrFragment(fragmentActivity);
 		}
 
 		public Builder dialogTitleText(@StringRes int dialogTitleText) {
@@ -199,7 +207,7 @@ public class RxBiometric {
 				throw new IllegalArgumentException("RxBiometric requires a dialogNegativeButtonText.");
 			}
 
-			return new RxBiometric(activity,
+			return new RxBiometric(activityOrFragment,
 					keyInvalidatedByBiometricEnrollment,
 					encryptionMethod,
 					logger,
@@ -225,7 +233,7 @@ public class RxBiometric {
 	 * authentication was successful or has failed entirely.
 	 */
 	public Observable<BiometricAuthenticationResult> authenticate() {
-		return AuthenticationObservable.create(activity, biometricDialogBundle);
+		return AuthenticationObservable.create(activityOrFragment, biometricDialogBundle);
 	}
 
 	/**
@@ -240,7 +248,7 @@ public class RxBiometric {
 	 * Will complete once the authentication and decryption were successful or have failed entirely.
 	 */
 	public Observable<BiometricCryptoObjectDecryptionResult> authenticate(@NonNull BiometricPrompt.CryptoObject cryptoObject) {
-		return CryptoObjectDecryptionObservable.create(activity, biometricDialogBundle, cryptoObject);
+		return CryptoObjectDecryptionObservable.create(activityOrFragment, biometricDialogBundle, cryptoObject);
 	}
 
 	/**
@@ -341,11 +349,11 @@ public class RxBiometric {
 		}
 		switch (encryptionMethod) {
 			case AES:
-				return AesEncryptionObservable.create(activity, biometricDialogBundle, keyName, toEncrypt, keyInvalidatedByBiometricEnrollment, logger);
+				return AesEncryptionObservable.create(activityOrFragment, biometricDialogBundle, keyName, toEncrypt, keyInvalidatedByBiometricEnrollment, logger);
 			case RSA:
 				// RSA encryption implementation does not depend on biometric authentication!
-				if (isAvailable(activity)) {
-					return RsaEncryptionObservable.create(activity, keyName, toEncrypt, keyInvalidatedByBiometricEnrollment, logger);
+				if (isAvailable(activityOrFragment.getContext())) {
+					return RsaEncryptionObservable.create(activityOrFragment.getContext(), keyName, toEncrypt, keyInvalidatedByBiometricEnrollment, logger);
 				} else {
 					return Observable.error(new BiometricsUnavailableException("Biometric authentication is not available on this device! Ensure that the device has a biometric sensor and enrolled biometrics by calling RxBiometric#isAvailable(Context) first"));
 				}
@@ -399,9 +407,9 @@ public class RxBiometric {
 		}
 		switch (encryptionMethod) {
 			case AES:
-				return AesDecryptionObservable.create(activity, biometricDialogBundle, keyName, toDecrypt, keyInvalidatedByBiometricEnrollment, logger);
+				return AesDecryptionObservable.create(activityOrFragment, biometricDialogBundle, keyName, toDecrypt, keyInvalidatedByBiometricEnrollment, logger);
 			case RSA:
-				return RsaDecryptionObservable.create(activity, biometricDialogBundle, keyName, toDecrypt, keyInvalidatedByBiometricEnrollment, logger);
+				return RsaDecryptionObservable.create(activityOrFragment, biometricDialogBundle, keyName, toDecrypt, keyInvalidatedByBiometricEnrollment, logger);
 			default:
 				return Observable.error(new IllegalArgumentException("Unknown decryption method: " + encryptionMethod));
 		}

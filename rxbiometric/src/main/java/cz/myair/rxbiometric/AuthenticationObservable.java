@@ -19,7 +19,6 @@ package cz.myair.rxbiometric;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.biometric.BiometricPrompt;
-import androidx.fragment.app.FragmentActivity;
 
 import cz.myair.rxbiometric.data.BiometricAuthenticationResult;
 import cz.myair.rxbiometric.data.BiometricResult;
@@ -35,16 +34,16 @@ class AuthenticationObservable extends BiometricDialogObservable<BiometricAuthen
 	 * Creates an Observable that will enable the biometric scanner of the device and listen for
 	 * the users biometric for authentication
 	 *
-	 * @param fragmentActivity activity to use
+	 * @param activityOrFragment activity or fragment wrapper
 	 * @return Observable {@link BiometricAuthenticationResult}
 	 */
-	static Observable<BiometricAuthenticationResult> create(FragmentActivity fragmentActivity, BiometricDialogBundle biometricDialogBundle) {
-		return Observable.create(new AuthenticationObservable(fragmentActivity, biometricDialogBundle));
+	static Observable<BiometricAuthenticationResult> create(ActivityOrFragment activityOrFragment, BiometricDialogBundle biometricDialogBundle) {
+		return Observable.create(new AuthenticationObservable(activityOrFragment, biometricDialogBundle));
 	}
 
 	@VisibleForTesting
-	AuthenticationObservable(FragmentActivity fragmentActivity, BiometricDialogBundle biometricDialogBundle) {
-		super(fragmentActivity, biometricDialogBundle);
+	AuthenticationObservable(ActivityOrFragment activityOrFragment, BiometricDialogBundle biometricDialogBundle) {
+		super(activityOrFragment, biometricDialogBundle);
 	}
 
 	@Nullable

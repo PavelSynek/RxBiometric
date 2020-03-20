@@ -19,7 +19,6 @@ package cz.myair.rxbiometric;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.biometric.BiometricPrompt;
-import androidx.fragment.app.FragmentActivity;
 
 import java.util.concurrent.Executor;
 
@@ -33,11 +32,11 @@ import io.reactivex.ObservableOnSubscribe;
  */
 abstract class BiometricDialogObservable<T> implements ObservableOnSubscribe<T> {
 
-	private final FragmentActivity fragmentActivity;
+	private final ActivityOrFragment activityOrFragment;
 	private final BiometricDialogBundle biometricDialogBundle;
 
-	BiometricDialogObservable(FragmentActivity fragmentActivity, BiometricDialogBundle biometricDialogBundle) {
-		this.fragmentActivity = fragmentActivity;
+	BiometricDialogObservable(ActivityOrFragment activityOrFragment, BiometricDialogBundle biometricDialogBundle) {
+		this.activityOrFragment = activityOrFragment;
 		this.biometricDialogBundle = biometricDialogBundle;
 	}
 
@@ -50,20 +49,25 @@ abstract class BiometricDialogObservable<T> implements ObservableOnSubscribe<T> 
 			}
 		};
 
-		String subtitleText = biometricDialogBundle.getSubtitleText() != null ? fragmentActivity.getString(biometricDialogBundle.getSubtitleText()) : null;
-		String descriptionText = biometricDialogBundle.getDescriptionText() != null ? fragmentActivity.getString(biometricDialogBundle.getDescriptionText()) : null;
+		String subtitleText = biometricDialogBundle.getSubtitleText() != null ? activityOrFragment.getContext().getString(biometricDialogBundle.getSubtitleText()) : null;
+		String descriptionText = biometricDialogBundle.getDescriptionText() != null ? activityOrFragment.getContext().getString(biometricDialogBundle.getDescriptionText()) : null;
 
 		BiometricPrompt.AuthenticationCallback authenticationCallback = createAuthenticationCallback(emitter);
 		BiometricPrompt.CryptoObject cryptoObject = initCryptoObject(emitter);
 		BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
-				.setTitle(fragmentActivity.getString(biometricDialogBundle.getTitleText()))
+				.setTitle(activityOrFragment.getContext().getString(biometricDialogBundle.getTitleText()))
 				.setSubtitle(subtitleText)
 				.setDescription(descriptionText)
-				.setNegativeButtonText(fragmentActivity.getString(biometricDialogBundle.getNegativeButtonText()))
+				.setNegativeButtonText(activityOrFragment.getContext().getString(biometricDialogBundle.getNegativeButtonText()))
 				.setConfirmationRequired(biometricDialogBundle.isConfirmationRequired())
 				.build();
 
-		BiometricPrompt biometricPrompt = new BiometricPrompt(fragmentActivity, executor, authenticationCallback);
+		BiometricPrompt biometricPrompt;
+		if (activityOrFragment.hasActivity()) {
+			biometricPrompt = new BiometricPrompt(activityOrFragment.getActivity(), executor, authenticationCallback);
+		} else {
+			biometricPrompt = new BiometricPrompt(activityOrFragment.getFragment(), executor, authenticationCallback);
+		}
 		if (cryptoObject == null) {
 			biometricPrompt.authenticate(promptInfo);
 		} else {

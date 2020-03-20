@@ -2,7 +2,6 @@ package cz.myair.rxbiometric;
 
 import androidx.annotation.Nullable;
 import androidx.biometric.BiometricPrompt;
-import androidx.fragment.app.FragmentActivity;
 
 import cz.myair.rxbiometric.data.BiometricCryptoObjectDecryptionResult;
 import cz.myair.rxbiometric.data.BiometricResult;
@@ -20,21 +19,21 @@ class CryptoObjectDecryptionObservable extends BiometricDialogObservable<Biometr
 	 * Creates a new AesEncryptionObservable that will listen to fingerprint authentication
 	 * to encrypt the given data.
 	 *
-	 * @param fragmentActivity      activity to use
+	 * @param activityOrFragment    activity or fragment wrapper
 	 * @param biometricDialogBundle bundle containing dialog texts
 	 * @param cryptoObject          crypto object to decrypt
 	 * @return Observable result of the decryption
 	 */
-	static Observable<BiometricCryptoObjectDecryptionResult> create(FragmentActivity fragmentActivity,
+	static Observable<BiometricCryptoObjectDecryptionResult> create(ActivityOrFragment activityOrFragment,
 																	BiometricDialogBundle biometricDialogBundle,
 																	BiometricPrompt.CryptoObject cryptoObject) {
-		return Observable.create(new CryptoObjectDecryptionObservable(fragmentActivity, biometricDialogBundle, cryptoObject));
+		return Observable.create(new CryptoObjectDecryptionObservable(activityOrFragment, biometricDialogBundle, cryptoObject));
 	}
 
-	private CryptoObjectDecryptionObservable(FragmentActivity fragmentActivity,
+	private CryptoObjectDecryptionObservable(ActivityOrFragment activityOrFragment,
 											 BiometricDialogBundle biometricDialogBundle,
 											 BiometricPrompt.CryptoObject cryptoObject) {
-		super(fragmentActivity, biometricDialogBundle);
+		super(activityOrFragment, biometricDialogBundle);
 		this.cryptoObject = cryptoObject;
 	}
 

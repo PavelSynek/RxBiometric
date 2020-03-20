@@ -1,6 +1,6 @@
 package cz.myair.rxbiometric;
 
-import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.Fragment;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +17,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class RxBiometricBuilderTest {
 
 	@Mock
-	FragmentActivity mockActivity;
+	Fragment mockFragment;
 
 	@Before
 	public void setUp() throws Exception {
@@ -28,13 +28,13 @@ public class RxBiometricBuilderTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void withoutTitle() {
-		new RxBiometric.Builder(mockActivity)
+		new RxBiometric.Builder(mockFragment)
 				.build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void withoutNegativeButton() {
-		new RxBiometric.Builder(mockActivity)
+		new RxBiometric.Builder(mockFragment)
 				.dialogTitleText(1)
 				.build();
 	}
