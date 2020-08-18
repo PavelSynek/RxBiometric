@@ -57,4 +57,9 @@ class CryptoObjectDecryptionObservable extends BiometricDialogObservable<Biometr
 	protected void onAuthenticationFailed(ObservableEmitter<BiometricCryptoObjectDecryptionResult> emitter) {
 		emitter.onNext(new BiometricCryptoObjectDecryptionResult(BiometricResult.FAILED, null));
 	}
+
+	@Override
+	protected boolean isCryptoObjectRequired() {
+		return true;
+	}
 }

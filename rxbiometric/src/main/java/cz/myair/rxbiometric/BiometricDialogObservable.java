@@ -52,8 +52,11 @@ abstract class BiometricDialogObservable<T> implements ObservableOnSubscribe<T> 
 		String subtitleText = biometricDialogBundle.getSubtitleText() != null ? activityOrFragment.getContext().getString(biometricDialogBundle.getSubtitleText()) : null;
 		String descriptionText = biometricDialogBundle.getDescriptionText() != null ? activityOrFragment.getContext().getString(biometricDialogBundle.getDescriptionText()) : null;
 
-		BiometricPrompt.AuthenticationCallback authenticationCallback = createAuthenticationCallback(emitter);
 		BiometricPrompt.CryptoObject cryptoObject = initCryptoObject(emitter);
+		if (cryptoObject == null && isCryptoObjectRequired()) {
+			return;
+		}
+		BiometricPrompt.AuthenticationCallback authenticationCallback = createAuthenticationCallback(emitter);
 		BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
 				.setTitle(activityOrFragment.getContext().getString(biometricDialogBundle.getTitleText()))
 				.setSubtitle(subtitleText)
@@ -128,4 +131,6 @@ abstract class BiometricDialogObservable<T> implements ObservableOnSubscribe<T> 
 	 * @param emitter current subscriber
 	 */
 	protected abstract void onAuthenticationFailed(ObservableEmitter<T> emitter);
+
+	protected abstract boolean isCryptoObjectRequired();
 }

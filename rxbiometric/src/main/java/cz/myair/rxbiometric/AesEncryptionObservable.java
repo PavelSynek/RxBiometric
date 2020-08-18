@@ -117,4 +117,9 @@ class AesEncryptionObservable extends BiometricDialogObservable<BiometricEncrypt
 	protected void onAuthenticationFailed(ObservableEmitter<BiometricEncryptionResult> emitter) {
 		emitter.onNext(new BiometricEncryptionResult(BiometricResult.FAILED, null));
 	}
+
+	@Override
+	protected boolean isCryptoObjectRequired() {
+		return true;
+	}
 }

@@ -63,4 +63,9 @@ class AuthenticationObservable extends BiometricDialogObservable<BiometricAuthen
 	protected void onAuthenticationFailed(ObservableEmitter<BiometricAuthenticationResult> emitter) {
 		emitter.onNext(new BiometricAuthenticationResult(BiometricResult.FAILED));
 	}
+
+	@Override
+	protected boolean isCryptoObjectRequired() {
+		return false;
+	}
 }
