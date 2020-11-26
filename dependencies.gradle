@@ -20,19 +20,18 @@ ext.versions = [
         name               : '1.0.0',
 
         // Android Versions
-        oreo               : 27,
-        compileSdk         : 29,
-        targetSdk          : 29,
+        compileSdk         : 30,
+        targetSdk          : 30,
         minSdk             : 19,
 
         // Gradle Versions
-        androidGradlePlugin: '3.6.1',
-        bintrayGradlePlugin: '1.7.1',
+        androidGradlePlugin: '4.1.1',
+        bintrayGradlePlugin: '1.8.5',
 
         // Dependency Versions
-        appCompat          : '1.1.0',
+        appCompat          : '1.2.0',
         supportAnnotations : '1.1.0',
-        biometrics         : '1.0.1',
+        biometrics         : '1.1.0',
         rxJava             : '2.1.7',
         rxAndroid          : '2.0.2',
 

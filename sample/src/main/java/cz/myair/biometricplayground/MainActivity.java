@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 		biometric = rxBiometric.authenticate()
-				.subscribeOn(Schedulers.computation())
+				.subscribeOn(AndroidSchedulers.mainThread())
 				.observeOn(AndroidSchedulers.mainThread())
 				.subscribe(biometricAuthenticationResult -> {
 					switch (biometricAuthenticationResult.getResult()) {
@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 		biometric = rxBiometric.decrypt(key, encrypted)
-				.subscribeOn(Schedulers.computation())
+				.subscribeOn(AndroidSchedulers.mainThread())
 				.observeOn(AndroidSchedulers.mainThread())
 				.subscribe(biometricDecryptionResult -> {
 					switch (biometricDecryptionResult.getResult()) {
