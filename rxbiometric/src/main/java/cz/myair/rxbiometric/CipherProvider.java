@@ -23,20 +23,21 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Enumeration;
 
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 abstract class CipherProvider {
 	static final String ANDROID_KEY_STORE = "AndroidKeyStore";
@@ -88,9 +89,16 @@ abstract class CipherProvider {
 	Cipher getCipherForEncryption() throws IOException, GeneralSecurityException {
 		try {
 			return cipherForEncryption();
-		} catch (KeyPermanentlyInvalidatedException e) {
+		} catch (KeyPermanentlyInvalidatedException | UnrecoverableKeyException e) {
 			logger.warn("Renewing invalidated key.");
-			removeKey(keyName);
+			try {
+			    removeKey(keyName);
+			} catch (Exception removeKeyException) {
+				logger.error("Removing invalidated or unrecoverable key.", removeKeyException);
+				if (keyExists(keyName)) {  // If the key still exists -- despite the exception, it might have been normally removed
+					throw removeKeyException;
+				}
+			}
 			return cipherForEncryption();
 		}
 	}
