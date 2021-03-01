@@ -424,7 +424,7 @@ public class RxBiometric {
 	 * @return {@code true} if biometric authentication is isAvailable
 	 */
 	public static boolean isAvailable(Context context) {
-		return BiometricManager.from(context).canAuthenticate() == BIOMETRIC_SUCCESS;
+		return BiometricManager.from(context).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) == BIOMETRIC_SUCCESS;
 	}
 
 	/**
